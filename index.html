@@ -10,16 +10,33 @@
 
 <body>
     <div id="instructions">
-        <h1>Wild Wild Taxi</h1>
-        <p>Click 'Start' to read the game instructions.</p>
-        <p>Click 'Start' again to begin the game.</p>
-        <p>The level and time limit will be displayed before the game begins.</p>
-        <p>Press the up arrow to accelerate your car, and long-press it to increase speed. Use the down arrow to slow
-            down.</p>
-        <p>Navigate through traffic using the left and right arrow keys.</p>
-        <p>Press the space bar to jump over cars and earn extra points.</p>
-        <p>Avoid crashes to move to higher levels and earn additional time for each level.</p>
-        <button id="start-button" tabindex="0">Start</button>
+        <h1>CRAZY TAXI</h1>
+        <div class="instruction-section">
+            <h2>Controls</h2>
+            <div class="key-controls">
+                <p><span class="key">↑</span> Hold to Accelerate</p>
+                <p><span class="key">↓</span> Brake</p>
+                <p><span class="key">←</span><span class="key">→</span> Change Lanes</p>
+                <p><span class="key">Space</span> Jump Over Cars</p>
+            </div>
+        </div>
+
+        <div class="instruction-section">
+            <h2>Power-Ups</h2>
+            <div class="powerup-info">
+                <p><span class="powerup-icon">🚀</span> <strong>Speed Boost</strong> - Temporary speed increase</p>
+                <p><span class="powerup-icon">⭐</span> <strong>Invincibility</strong> - Temporary crash protection</p>
+                <p><span class="powerup-icon">🪙</span> <strong>Coins</strong> - Collect for bonus points</p>
+            </div>
+        </div>
+
+        <div class="instruction-section">
+            <h2>Objective</h2>
+            <p>Race against time ⏱️ to reach checkpoints</p>
+            <p>Avoid or jump over traffic for bonus points!</p>
+        </div>
+
+        <button id="start-button" tabindex="0">Start Game</button>
     </div>
     <div id="level-info">
         <h1>Level <span id="level">1</span></h1>
