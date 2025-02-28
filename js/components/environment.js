@@ -189,13 +189,16 @@ function createTrees(worldContainer) {
 function createMountains(worldContainer) {
   const mountainCount = 10;
   const mountainSpacing = ROAD.LENGTH / mountainCount;
+  const safeDistanceFromRoad = ROAD.WIDTH / 2 + 30; // Keep mountains at least 30 units away from road edges
 
   for (let i = 0; i < mountainCount; i++) {
     // Start mountains further along the road (add 500 to starting position)
     const z = 500 + i * mountainSpacing + Math.random() * 100;
 
-    // Place mountains further from the road center
-    const x = (Math.random() - 0.5) * 400;
+    // Randomly choose left or right side of the road
+    const side = Math.random() < 0.5 ? -1 : 1;
+    // Place mountains only beyond the safe distance from road
+    const x = side * (safeDistanceFromRoad + Math.random() * 100);
 
     const mountainGeometry = new THREE.ConeGeometry(50, 100, 4);
     const mountainMaterial = new THREE.MeshBasicMaterial({ color: 0x7a7a7a });
