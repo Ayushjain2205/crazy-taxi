@@ -1,0 +1,697 @@
+// Set up the scene, camera, and renderer
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+// Handle window resize
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Create game world container - everything will move inside this
+const worldContainer = new THREE.Group();
+scene.add(worldContainer);
+
+// Create sky background
+const skyColors = [0xc0e0ff, 0x9ec5ff]; // Softer blue colors for the sky
+const skyGeometry = new THREE.SphereGeometry(500, 32, 32);
+const skyMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    topColor: { value: new THREE.Color(skyColors[0]) },
+    bottomColor: { value: new THREE.Color(skyColors[1]) },
+  },
+  vertexShader: `
+    varying vec3 vWorldPosition;
+    void main() {
+      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+      vWorldPosition = worldPosition.xyz;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 topColor;
+    uniform vec3 bottomColor;
+    varying vec3 vWorldPosition;
+    void main() {
+      float h = normalize(vWorldPosition + vec3(0.0, 0.1, 0.0)).y;
+      gl_FragColor = vec4(mix(bottomColor, topColor, max(0.0, h)), 1.0);
+    }
+  `,
+  side: THREE.BackSide,
+});
+const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+scene.add(sky); // Sky stays in scene, not in worldContainer
+
+// Add lights to the scene
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+directionalLight.position.set(50, 100, 0);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
+
+// Create sun
+const sunGeometry = new THREE.SphereGeometry(10, 32, 32);
+const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xfffae6 });
+const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+sun.position.set(100, 100, -200);
+scene.add(sun); // Sun stays in scene, not in worldContainer
+
+// Create the road
+const roadWidth = 12;
+const roadLength = 10000;
+const roadGeometry = new THREE.PlaneGeometry(roadWidth, roadLength);
+const roadMaterial = new THREE.MeshBasicMaterial({ color: 0x505050 });
+const road = new THREE.Mesh(roadGeometry, roadMaterial);
+road.rotation.x = -Math.PI / 2;
+road.position.y = 0;
+road.position.z = roadLength / 2; // Position road ahead
+worldContainer.add(road);
+
+// Add lane markings - adding to world container
+const addLaneMarkings = () => {
+  const laneMarkingColor = 0xcccccc;
+
+  // Center lane divider - using dashed line instead of solid
+  const centerLineDashCount = 100;
+  const centerLineDashLength = 5;
+  const centerLineDashWidth = 0.2;
+  const centerLineDashSpacing = 10;
+  const centerLineDashGeometry = new THREE.PlaneGeometry(
+    centerLineDashWidth,
+    centerLineDashLength
+  );
+  const centerLineDashMaterial = new THREE.MeshBasicMaterial({
+    color: laneMarkingColor,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.7,
+  });
+
+  // Create center dashed line
+  for (let i = 0; i < centerLineDashCount; i++) {
+    const zPos = i * (centerLineDashLength + centerLineDashSpacing);
+    const centerDash = new THREE.Mesh(
+      centerLineDashGeometry,
+      centerLineDashMaterial
+    );
+    centerDash.rotation.x = -Math.PI / 2;
+    centerDash.position.set(0, 0.01, zPos);
+    worldContainer.add(centerDash);
+  }
+
+  // Lane edge markings (side lines)
+  const edgeLineGeometry = new THREE.PlaneGeometry(0.15, roadLength);
+  const edgeLineMaterial = new THREE.MeshBasicMaterial({
+    color: laneMarkingColor,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.7,
+  });
+
+  // Left edge line
+  const leftEdgeLine = new THREE.Mesh(edgeLineGeometry, edgeLineMaterial);
+  leftEdgeLine.rotation.x = -Math.PI / 2;
+  leftEdgeLine.position.y = 0.01;
+  leftEdgeLine.position.x = -roadWidth / 2 + 0.1;
+  leftEdgeLine.position.z = roadLength / 2;
+  worldContainer.add(leftEdgeLine);
+
+  // Right edge line
+  const rightEdgeLine = new THREE.Mesh(edgeLineGeometry, edgeLineMaterial);
+  rightEdgeLine.rotation.x = -Math.PI / 2;
+  rightEdgeLine.position.y = 0.01;
+  rightEdgeLine.position.x = roadWidth / 2 - 0.1;
+  rightEdgeLine.position.z = roadLength / 2;
+  worldContainer.add(rightEdgeLine);
+
+  // Dashed lane markings - much fewer and more subtle
+  const dashCount = 80;
+  const dashLength = 3;
+  const dashWidth = 0.15;
+  const dashSpacing = 15;
+  const dashGeometry = new THREE.PlaneGeometry(dashWidth, dashLength);
+  const dashMaterial = new THREE.MeshBasicMaterial({
+    color: laneMarkingColor,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.6,
+  });
+
+  // Create dashed lines for each lane
+  for (let i = 0; i < dashCount; i++) {
+    const zPos = i * (dashLength + dashSpacing);
+
+    // Left lane dashed line
+    const leftDash = new THREE.Mesh(dashGeometry, dashMaterial);
+    leftDash.rotation.x = -Math.PI / 2;
+    leftDash.position.set(-roadWidth / 3, 0.01, zPos);
+    worldContainer.add(leftDash);
+
+    // Right lane dashed line
+    const rightDash = new THREE.Mesh(dashGeometry, dashMaterial);
+    rightDash.rotation.x = -Math.PI / 2;
+    rightDash.position.set(roadWidth / 3, 0.01, zPos);
+    worldContainer.add(rightDash);
+  }
+};
+
+// Create grass on both sides of the road
+const createGrass = () => {
+  const grassWidth = 20;
+  const grassGeometry = new THREE.PlaneGeometry(grassWidth, roadLength);
+  const grassMaterial = new THREE.MeshBasicMaterial({ color: 0x519868 });
+
+  // Left grass
+  const leftGrass = new THREE.Mesh(grassGeometry, grassMaterial);
+  leftGrass.rotation.x = -Math.PI / 2;
+  leftGrass.position.y = -0.1;
+  leftGrass.position.x = -roadWidth / 2 - grassWidth / 2;
+  leftGrass.position.z = roadLength / 2;
+  worldContainer.add(leftGrass);
+
+  // Right grass
+  const rightGrass = new THREE.Mesh(grassGeometry, grassMaterial);
+  rightGrass.rotation.x = -Math.PI / 2;
+  rightGrass.position.y = -0.1;
+  rightGrass.position.x = roadWidth / 2 + grassWidth / 2;
+  rightGrass.position.z = roadLength / 2;
+  worldContainer.add(rightGrass);
+};
+
+// Create trees along the road
+const createTrees = () => {
+  const treeCount = 40;
+  const treeSpacing = roadLength / treeCount;
+
+  const createTree = (x, z) => {
+    const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.5, 3, 8);
+    const trunkMaterial = new THREE.MeshBasicMaterial({ color: 0x8a6642 });
+    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+    trunk.position.y = 1.5;
+
+    const leavesGeometry = new THREE.ConeGeometry(2.5, 5, 8);
+    const leavesMaterial = new THREE.MeshBasicMaterial({ color: 0x3a7d44 });
+    const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+    leaves.position.y = 5;
+
+    const tree = new THREE.Group();
+    tree.add(trunk);
+    tree.add(leaves);
+    tree.position.set(x, 0, z);
+    worldContainer.add(tree);
+  };
+
+  // Create trees on both sides of the road
+  for (let i = 0; i < treeCount; i++) {
+    const z = i * treeSpacing;
+
+    // Left side tree (with some randomness)
+    if (Math.random() > 0.3) {
+      // 70% chance to create a tree
+      const leftX = -roadWidth / 2 - 10 - Math.random() * 10;
+      createTree(leftX, z);
+    }
+
+    // Right side tree (with some randomness)
+    if (Math.random() > 0.3) {
+      // 70% chance to create a tree
+      const rightX = roadWidth / 2 + 10 + Math.random() * 10;
+      createTree(rightX, z);
+    }
+  }
+};
+
+// Create mountains in the background
+const createMountains = () => {
+  const mountainCount = 10;
+  const mountainSpacing = roadLength / mountainCount;
+
+  for (let i = 0; i < mountainCount; i++) {
+    const z = i * mountainSpacing + Math.random() * 100;
+    const x = (Math.random() - 0.5) * 300;
+
+    const mountainGeometry = new THREE.ConeGeometry(50, 100, 4);
+    const mountainMaterial = new THREE.MeshBasicMaterial({ color: 0x7a7a7a });
+    const mountain = new THREE.Mesh(mountainGeometry, mountainMaterial);
+    mountain.position.set(x, 0, z);
+    worldContainer.add(mountain);
+  }
+};
+
+// Initialize the world elements
+addLaneMarkings();
+createGrass();
+createTrees();
+createMountains();
+
+// Create the taxi (yellow box) - now at a FIXED position
+const taxiGeometry = new THREE.BoxGeometry(2, 1, 4);
+const taxiMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+const taxi = new THREE.Mesh(taxiGeometry, taxiMaterial);
+taxi.position.set(0, 0.5, -5); // Fixed position - slightly ahead of camera
+scene.add(taxi); // Taxi stays in main scene, not in worldContainer
+
+// Create taxi parts for the crash effect
+let taxiParts = [];
+const createTaxiParts = () => {
+  // Clear any existing parts
+  taxiParts.forEach((part) => scene.remove(part));
+  taxiParts = [];
+
+  // Create 8 smaller cubes to represent broken taxi parts
+  const partSize = 1;
+  const partGeometry = new THREE.BoxGeometry(partSize, partSize, partSize);
+  const partMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+
+  for (let i = 0; i < 8; i++) {
+    const part = new THREE.Mesh(partGeometry, partMaterial);
+    // Position parts at the taxi position initially
+    part.position.copy(taxi.position);
+    // Add slight offset for each part
+    part.position.x += (Math.random() - 0.5) * 0.5;
+    part.position.y += (Math.random() - 0.5) * 0.5;
+    part.position.z += (Math.random() - 0.5) * 0.5;
+
+    // Add velocities for the crash animation
+    part.userData = {
+      velocity: new THREE.Vector3(
+        (Math.random() - 0.5) * 10,
+        Math.random() * 10,
+        (Math.random() - 0.5) * 10
+      ),
+      rotationSpeed: new THREE.Vector3(
+        Math.random() * 0.2,
+        Math.random() * 0.2,
+        Math.random() * 0.2
+      ),
+    };
+
+    // Initially hide the parts
+    part.visible = false;
+    scene.add(part);
+    taxiParts.push(part);
+  }
+};
+
+// Create initial taxi parts (they'll be hidden until crash)
+createTaxiParts();
+
+let taxiLane = 1; // 0 = left, 1 = middle, 2 = right
+const lanePositions = [4, 0, -4];
+let taxiTargetX = lanePositions[taxiLane]; // Target X position for smooth lane changes
+
+// Create traffic cars (red boxes) - in the world container
+const trafficCars = [];
+function createTrafficCar() {
+  const car = new THREE.Mesh(
+    new THREE.BoxGeometry(2, 1, 4),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+  );
+
+  // Position car ahead in the world
+  const lane = Math.floor(Math.random() * 3);
+  const z = 50 + Math.random() * roadLength * 0.8; // Spread throughout the road
+
+  car.position.set(lanePositions[lane], 0.5, z);
+  worldContainer.add(car);
+  trafficCars.push(car);
+}
+
+// Create initial traffic
+for (let i = 0; i < 15; i++) {
+  createTrafficCar();
+}
+
+// Position the camera behind the taxi
+camera.position.set(0, 5, -15);
+camera.lookAt(0, 0, 10);
+
+// Game variables
+let gameState = "start";
+let level = 1;
+let timeLimit = 60;
+let remainingTime = timeLimit;
+let score = 0;
+let jumpBonus = 0;
+let isAccelerating = false;
+let isDecelerating = false;
+let isJumping = false;
+let jumpTime = 0;
+const jumpDuration = 1;
+const maxJumpHeight = 2;
+let timerInterval;
+let gameOverAnimationTime = 0;
+let crashAnimationActive = false;
+
+// Speed and distance tracking
+let speed = 10; // Initial speed (now this is world movement speed)
+const minSpeed = 10;
+const maxSpeed = 100;
+let distance = 0; // Track total distance for scoring
+
+// UI elements
+const instructionsDiv = document.getElementById("instructions");
+const levelInfoDiv = document.getElementById("level-info");
+const gameOverDiv = document.getElementById("game-over");
+const startButton = document.getElementById("start-button");
+const beginButton = document.getElementById("begin-button");
+const restartButton = document.getElementById("restart-button");
+const levelSpan = document.getElementById("level");
+const timeLimitSpan = document.getElementById("time-limit");
+const scoreDiv = document.getElementById("score");
+const timerDiv = document.getElementById("timer");
+const finalScoreSpan = document.getElementById("final-score");
+
+// Set initial UI values
+levelSpan.textContent = level;
+timeLimitSpan.textContent = timeLimit;
+timerDiv.textContent = "Time: " + remainingTime;
+
+// Make sure level info is initially hidden
+levelInfoDiv.style.display = "none";
+gameOverDiv.style.display = "none";
+
+// Handle start button clicks
+startButton.addEventListener("click", () => {
+  instructionsDiv.style.display = "none";
+  levelInfoDiv.style.display = "flex";
+});
+
+beginButton.addEventListener("click", () => {
+  levelInfoDiv.style.display = "none";
+  gameState = "playing";
+  timerInterval = setInterval(() => {
+    remainingTime--;
+    timerDiv.textContent = "Time: " + remainingTime;
+    if (remainingTime <= 0) {
+      handleGameOver();
+    }
+  }, 1000);
+});
+
+// Add restart button functionality
+restartButton.addEventListener("click", () => {
+  restartGame();
+});
+
+// Function to handle game over
+function handleGameOver() {
+  gameState = "gameover";
+  clearInterval(timerInterval);
+
+  // Show game over screen
+  finalScoreSpan.textContent = score;
+  gameOverDiv.style.display = "flex";
+
+  // If this was a crash, trigger crash animation
+  if (crashAnimationActive) {
+    // Hide the taxi and show its broken parts
+    taxi.visible = false;
+    taxiParts.forEach((part) => {
+      part.visible = true;
+    });
+  }
+}
+
+// Function to create crash effect
+function createCrashEffect(collidedCar) {
+  crashAnimationActive = true;
+
+  // Camera shake effect (will be applied in animate function)
+  gameOverAnimationTime = 0;
+
+  // Create fire particles or explosion effect
+  const explosionGeometry = new THREE.SphereGeometry(2, 8, 8);
+  const explosionMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff5500,
+    transparent: true,
+    opacity: 0.8,
+  });
+  const explosion = new THREE.Mesh(explosionGeometry, explosionMaterial);
+
+  // Position explosion between taxi and collided car
+  const collisionPoint = new THREE.Vector3();
+  collisionPoint.copy(taxi.position);
+  collisionPoint.z = collidedCar.position.z + worldContainer.position.z;
+
+  explosion.position.copy(collisionPoint);
+  scene.add(explosion);
+
+  // Animate explosion and remove it after 1 second
+  setTimeout(() => {
+    scene.remove(explosion);
+  }, 1000);
+
+  // Play crash sound (if we had one)
+  // crashSound.play();
+
+  // Call handleGameOver to show game over UI
+  handleGameOver();
+}
+
+// Function to restart the game
+function restartGame() {
+  // Reset game state
+  gameState = "playing";
+  level = 1;
+  remainingTime = timeLimit;
+  score = 0;
+  jumpBonus = 0;
+  distance = 0;
+  speed = 10;
+
+  // Reset UI
+  levelSpan.textContent = level;
+  timeLimitSpan.textContent = timeLimit;
+  timerDiv.textContent = "Time: " + remainingTime;
+  scoreDiv.textContent = "Score: 0";
+  gameOverDiv.style.display = "none";
+
+  // Reset taxi and camera
+  taxi.position.set(0, 0.5, -5);
+  taxi.visible = true;
+  taxiLane = 1;
+  taxiTargetX = lanePositions[taxiLane];
+
+  // Hide taxi parts
+  taxiParts.forEach((part) => {
+    part.visible = false;
+  });
+
+  // Reset world position
+  worldContainer.position.z = 0;
+  worldZ = 0;
+
+  // Reposition traffic cars
+  trafficCars.forEach((car) => {
+    const lane = Math.floor(Math.random() * 3);
+    const z = 50 + Math.random() * roadLength * 0.8;
+    car.position.set(lanePositions[lane], 0.5, z);
+  });
+
+  // Reset animation flags
+  crashAnimationActive = false;
+
+  // Restart timer
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    remainingTime--;
+    timerDiv.textContent = "Time: " + remainingTime;
+    if (remainingTime <= 0) {
+      handleGameOver();
+    }
+  }, 1000);
+}
+
+// Controls - now controlling taxi lane position
+window.addEventListener("keydown", (e) => {
+  if (e.repeat) return;
+
+  // Allow only restart key (R) when game is over
+  if (gameState === "gameover") {
+    if (e.key === "r" || e.key === "R") {
+      restartGame();
+    }
+    return;
+  }
+
+  if (gameState !== "playing") return;
+
+  if (e.key === "ArrowLeft" && taxiLane > 0) {
+    taxiLane--;
+    taxiTargetX = lanePositions[taxiLane];
+  } else if (e.key === "ArrowRight" && taxiLane < 2) {
+    taxiLane++;
+    taxiTargetX = lanePositions[taxiLane];
+  } else if (e.key === "ArrowUp") {
+    isAccelerating = true;
+  } else if (e.key === "ArrowDown") {
+    isDecelerating = true;
+  } else if (e.key === " " || e.code === "Space") {
+    if (!isJumping) {
+      isJumping = true;
+      jumpTime = 0;
+    }
+  }
+});
+
+window.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowUp") {
+    isAccelerating = false;
+  } else if (e.key === "ArrowDown") {
+    isDecelerating = false;
+  }
+});
+
+// Game loop
+let lastTime = 0;
+let worldZ = 0; // Track world container's Z position for looping
+
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  // Always render, even in game over state for animations
+  const deltaTime = (time - lastTime) / 1000;
+  lastTime = time;
+
+  // Handle crash animation
+  if (gameState === "gameover" && crashAnimationActive) {
+    gameOverAnimationTime += deltaTime;
+
+    // Camera shake effect
+    if (gameOverAnimationTime < 1.5) {
+      camera.position.x = Math.sin(gameOverAnimationTime * 30) * 0.3;
+    } else {
+      camera.position.x = 0;
+    }
+
+    // Animate taxi parts flying
+    taxiParts.forEach((part) => {
+      if (part.visible) {
+        // Move part according to velocity
+        part.position.x += part.userData.velocity.x * deltaTime;
+        part.position.y += part.userData.velocity.y * deltaTime;
+        part.position.z += part.userData.velocity.z * deltaTime;
+
+        // Apply gravity
+        part.userData.velocity.y -= 9.8 * deltaTime;
+
+        // Rotate part
+        part.rotation.x += part.userData.rotationSpeed.x;
+        part.rotation.y += part.userData.rotationSpeed.y;
+        part.rotation.z += part.userData.rotationSpeed.z;
+
+        // Remove parts that fall below ground
+        if (part.position.y < -10) {
+          part.visible = false;
+        }
+      }
+    });
+  }
+
+  if (gameState !== "playing") {
+    renderer.render(scene, camera);
+    return;
+  }
+
+  // Update speed based on input
+  if (isAccelerating) {
+    speed += 20 * deltaTime;
+    if (speed > maxSpeed) speed = maxSpeed;
+  } else if (isDecelerating) {
+    speed -= 20 * deltaTime;
+    if (speed < minSpeed) speed = minSpeed;
+  }
+
+  // Move the taxi smoothly between lanes (X axis only)
+  taxi.position.x += (taxiTargetX - taxi.position.x) * 10 * deltaTime;
+
+  // Update jumping
+  if (isJumping) {
+    jumpTime += deltaTime;
+    if (jumpTime > jumpDuration) {
+      isJumping = false;
+      jumpTime = 0;
+      taxi.position.y = 0.5;
+    } else {
+      const fraction = jumpTime / jumpDuration;
+      taxi.position.y = 0.5 + maxJumpHeight * 4 * fraction * (1 - fraction);
+    }
+  } else {
+    taxi.position.y = 0.5;
+  }
+
+  // Move the world toward the player
+  worldContainer.position.z -= speed * deltaTime;
+  worldZ -= speed * deltaTime;
+  distance += speed * deltaTime;
+
+  // Check if we need to loop the world
+  if (worldZ <= -roadLength) {
+    worldZ = 0;
+    worldContainer.position.z = 0;
+
+    // Recycle traffic cars
+    trafficCars.forEach((car) => {
+      // Keep car's relative position but randomize lane and slightly adjust z
+      const lane = Math.floor(Math.random() * 3);
+      car.position.x = lanePositions[lane];
+      car.position.z += Math.random() * 100 - 50; // Add some variation
+
+      // Make sure car stays within the road bounds
+      if (car.position.z < 50) car.position.z = 50 + Math.random() * 100;
+      if (car.position.z > roadLength)
+        car.position.z = roadLength - Math.random() * 100;
+    });
+  }
+
+  // Check for collisions with traffic cars
+  jumpBonus = 0;
+  trafficCars.forEach((car) => {
+    // Calculate car's position relative to the taxi
+    const carRelativeZ = car.position.z + worldContainer.position.z;
+
+    if (
+      Math.abs(taxi.position.x - car.position.x) < 2 &&
+      Math.abs(carRelativeZ) < 3
+    ) {
+      if (isJumping) {
+        jumpBonus += 1; // Award points for jumping over cars
+      } else {
+        // Collision detected!
+        createCrashEffect(car);
+      }
+    }
+  });
+
+  // Update score
+  score = Math.floor(distance) + jumpBonus;
+  scoreDiv.textContent = "Score: " + score;
+
+  // Check for level advancement
+  if (distance >= 1000 * level) {
+    level += 1;
+    remainingTime += 30;
+    timerDiv.textContent = "Time: " + remainingTime;
+
+    // Add more traffic cars
+    for (let i = 0; i < 3; i++) {
+      createTrafficCar();
+    }
+  }
+
+  renderer.render(scene, camera);
+}
+
+animate(0);
