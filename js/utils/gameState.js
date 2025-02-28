@@ -136,6 +136,7 @@ export function handleGameOver() {
   gameOverDiv.querySelector("h1").textContent = "CRASH!";
   gameOverDiv.querySelector("h2").textContent = "Game Over";
   finalScoreSpan.textContent = score;
+  document.getElementById("final-coins").textContent = coins;
   gameOverDiv.style.display = "flex";
 }
 
