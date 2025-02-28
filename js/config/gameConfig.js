@@ -97,3 +97,13 @@ export const POWERUPS = {
   HOVER_SPEED: 1.5,
   SPAWN_CHANCE: 0.2, // 20% chance to spawn a power-up at each position
 };
+
+export const GREASE = {
+  COLOR: 0x1a1a1a,
+  WIDTH: 4,
+  LENGTH: 8,
+  SPAWN_CHANCE: 0.15, // 15% chance to spawn grease at each position
+  SLOWDOWN_FACTOR: 0.5, // Reduces speed to 50% when driving over grease
+  EFFECT_DURATION: 1.5, // How long the slowdown effect lasts in seconds
+  OPACITY: 0.7,
+};

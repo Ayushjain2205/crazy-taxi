@@ -51,6 +51,13 @@ import {
   getSpeedBoostMultiplier,
   isInvincible,
 } from "./components/collectibles.js";
+import {
+  spawnGreasePatches,
+  updateGreasePatches,
+  resetGreasePatches,
+  cleanupGreasePatches,
+  getGreaseSlowdownFactor,
+} from "./components/greasePatch.js";
 
 // Initialize game
 function initGame() {
@@ -72,8 +79,9 @@ function initGame() {
   // Initialize game state
   initGameState();
 
-  // Spawn initial collectibles
+  // Spawn initial collectibles and obstacles
   resetCollectibles();
+  resetGreasePatches();
 
   // Start animation loop
   animate(0);
@@ -118,11 +126,12 @@ function animate(time) {
   // Update taxi
   updateTaxi(deltaTime);
 
-  // Update collectibles
+  // Update collectibles and obstacles
   updateCollectibles(deltaTime);
+  updateGreasePatches(deltaTime);
 
-  // Update speed based on input and power-ups
-  const speedMultiplier = getSpeedBoostMultiplier();
+  // Update speed based on input, power-ups, and obstacles
+  const speedMultiplier = getSpeedBoostMultiplier() * getGreaseSlowdownFactor();
   updateSpeed(
     deltaTime,
     isPlayerAccelerating(),
@@ -174,9 +183,11 @@ function animate(time) {
     // Update traffic positions when world loops
     updateTrafficPositions();
 
-    // Clean up old collectibles and spawn new ones
+    // Clean up old collectibles and obstacles and spawn new ones
     cleanupCollectibles(-ROAD.LENGTH);
+    cleanupGreasePatches(-ROAD.LENGTH);
     spawnCollectibles(0, ROAD.LENGTH, 20);
+    spawnGreasePatches(0, ROAD.LENGTH, 50);
   }
 
   if (collision && !isInvincible()) {
@@ -190,5 +201,5 @@ function animate(time) {
   renderer.render(getScene(), camera);
 }
 
-// Start the game when page loads
-window.addEventListener("DOMContentLoaded", initGame);
+// Initialize the game when the window loads
+window.addEventListener("load", initGame);

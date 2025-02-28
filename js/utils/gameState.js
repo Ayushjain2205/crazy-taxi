@@ -356,7 +356,12 @@ export function getSpeed() {
   return speed;
 }
 
-export function updateSpeed(deltaTime, isAccelerating, isDecelerating) {
+export function updateSpeed(
+  deltaTime,
+  isAccelerating,
+  isDecelerating,
+  speedMultiplier = 1.0
+) {
   if (isAccelerating) {
     // Set target speed based on acceleration
     targetSpeed += 30 * deltaTime;
@@ -375,6 +380,11 @@ export function updateSpeed(deltaTime, isAccelerating, isDecelerating) {
     speed -= 25 * deltaTime; // Decelerate a bit faster
     if (speed < targetSpeed) speed = targetSpeed;
   }
+
+  // Apply speed multiplier from power-ups and obstacles
+  speed *= speedMultiplier;
+  // Ensure speed stays within bounds even after multiplier
+  speed = Math.max(GAME.MIN_SPEED, Math.min(speed, GAME.MAX_SPEED));
 }
 
 export function getWorldZ() {

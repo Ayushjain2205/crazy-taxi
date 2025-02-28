@@ -13,6 +13,10 @@ import {
   collectCoin,
   collectPowerUp,
 } from "../components/collectibles.js";
+import {
+  getGreasePatches,
+  activateGreaseEffect,
+} from "../components/greasePatch.js";
 import { addCoins } from "./gameState.js";
 
 let jumpBonus = 0;
@@ -24,6 +28,7 @@ export function checkCollisions() {
   const worldContainer = getWorldContainer();
   const finishLine = getFinishLine();
   const collectibles = getCollectibles();
+  const greasePatches = getGreasePatches();
 
   // Reset jump bonus at the start of collision detection
   jumpBonus = 0;
@@ -33,6 +38,23 @@ export function checkCollisions() {
   let finishLineCrossed = false;
   let collectedCoins = 0;
   let timeBonus = 0;
+  let hitGrease = false;
+
+  // Check grease patch collisions
+  greasePatches.forEach((greasePatch) => {
+    const greasePatchRelativeZ =
+      greasePatch.position.z + worldContainer.position.z;
+    if (
+      Math.abs(taxi.position.x - greasePatch.position.x) <
+        COLLISION.THRESHOLD_X &&
+      Math.abs(greasePatchRelativeZ - taxi.position.z) <
+        COLLISION.THRESHOLD_Z &&
+      !isJumpActive() // Only affect the taxi if it's not jumping
+    ) {
+      hitGrease = true;
+      activateGreaseEffect();
+    }
+  });
 
   // Check collectible collisions
   collectibles.forEach((collectible) => {
@@ -113,6 +135,7 @@ export function checkCollisions() {
     finishLineCrossed,
     collectedCoins,
     timeBonus,
+    hitGrease,
   };
 }
 
