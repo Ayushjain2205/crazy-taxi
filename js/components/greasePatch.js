@@ -7,15 +7,18 @@ let activeGreaseEffect = null;
 // Create a grease patch mesh
 function createGreasePatchMesh() {
   const geometry = new THREE.PlaneGeometry(GREASE.WIDTH, GREASE.LENGTH);
-  const material = new THREE.MeshBasicMaterial({
-    color: GREASE.COLOR,
+  const material = new THREE.MeshPhongMaterial({
+    color: 0x202020, // Dark gray instead of pure black
     transparent: true,
-    opacity: GREASE.OPACITY,
+    opacity: 0.9,
     side: THREE.DoubleSide,
+    shininess: 150,
+    specular: 0xffffff, // Bright specular for oil-like shine
+    emissive: 0x000000, // No glow
   });
   const greasePatch = new THREE.Mesh(geometry, material);
   greasePatch.rotation.x = -Math.PI / 2;
-  greasePatch.position.y = 0.01; // Slightly above road to prevent z-fighting
+  greasePatch.position.y = 0.02; // Slightly higher above road
 
   // Add userData for collision detection
   greasePatch.userData.isGreasePatch = true;
@@ -26,20 +29,29 @@ function createGreasePatchMesh() {
 // Spawn grease patches at regular intervals
 export function spawnGreasePatches(startZ, endZ, spacing = 50) {
   const worldContainer = getWorldContainer();
+  console.log(
+    "Spawning grease patches from",
+    startZ,
+    "to",
+    endZ,
+    "with spacing",
+    spacing
+  );
 
   for (let z = startZ; z < endZ; z += spacing) {
     // Randomly choose lane
     const lane = Math.floor(Math.random() * LANES.COUNT);
     const x = LANES.POSITIONS[lane];
 
-    // Try to spawn a grease patch
-    if (Math.random() < GREASE.SPAWN_CHANCE) {
-      const greasePatch = createGreasePatchMesh();
-      greasePatch.position.set(x, greasePatch.position.y, z);
-      worldContainer.add(greasePatch);
-      greasePatchList.push(greasePatch);
-    }
+    // Always spawn a grease patch (for testing)
+    const greasePatch = createGreasePatchMesh();
+    greasePatch.position.set(x, greasePatch.position.y, z);
+    worldContainer.add(greasePatch);
+    greasePatchList.push(greasePatch);
+    console.log("Spawned grease patch at x:", x, "z:", z);
   }
+
+  console.log("Total grease patches spawned:", greasePatchList.length);
 }
 
 // Update grease patches and effects
@@ -55,10 +67,16 @@ export function updateGreasePatches(deltaTime) {
 
 // Handle grease patch effect
 export function activateGreaseEffect() {
-  activeGreaseEffect = {
-    timeLeft: GREASE.EFFECT_DURATION,
-    slowdownFactor: GREASE.SLOWDOWN_FACTOR,
-  };
+  // Only activate if there's no active effect or if the current effect is about to end
+  if (!activeGreaseEffect || activeGreaseEffect.timeLeft < 0.1) {
+    activeGreaseEffect = {
+      timeLeft: GREASE.EFFECT_DURATION,
+      slowdownFactor: GREASE.SLOWDOWN_FACTOR,
+    };
+  } else {
+    // If already active, just refresh the duration
+    activeGreaseEffect.timeLeft = GREASE.EFFECT_DURATION;
+  }
 }
 
 function deactivateGreaseEffect() {
@@ -96,5 +114,8 @@ export function getGreasePatches() {
 
 // Get current slowdown factor (1.0 means no slowdown)
 export function getGreaseSlowdownFactor() {
-  return activeGreaseEffect ? activeGreaseEffect.slowdownFactor : 1.0;
+  if (!activeGreaseEffect || activeGreaseEffect.timeLeft <= 0) {
+    return 1.0;
+  }
+  return activeGreaseEffect.slowdownFactor;
 }

@@ -368,29 +368,31 @@ export function updateSpeed(
   isDecelerating,
   speedMultiplier = 1.0
 ) {
+  // First, update target speed based on input
   if (isAccelerating) {
-    // Set target speed based on acceleration
     targetSpeed += 30 * deltaTime;
-    if (targetSpeed > GAME.MAX_SPEED) targetSpeed = GAME.MAX_SPEED;
+    targetSpeed = Math.min(targetSpeed, GAME.MAX_SPEED);
   } else if (isDecelerating) {
-    // Set target speed based on deceleration
-    targetSpeed -= 30 * deltaTime;
-    if (targetSpeed < GAME.MIN_SPEED) targetSpeed = GAME.MIN_SPEED;
+    targetSpeed -= 50 * deltaTime;
+    targetSpeed = Math.max(targetSpeed, GAME.MIN_SPEED);
   }
 
-  // Gradually adjust actual speed towards target speed
-  if (speed < targetSpeed) {
-    speed += 15 * deltaTime; // Accelerate more gradually
-    if (speed > targetSpeed) speed = targetSpeed;
-  } else if (speed > targetSpeed) {
-    speed -= 25 * deltaTime; // Decelerate a bit faster
-    if (speed < targetSpeed) speed = targetSpeed;
+  // Calculate effective speeds with multiplier
+  const effectiveTargetSpeed = targetSpeed * speedMultiplier;
+
+  // Gradually adjust actual speed towards effective target speed
+  if (speed < effectiveTargetSpeed) {
+    speed += 15 * deltaTime;
+    if (speed > effectiveTargetSpeed) speed = effectiveTargetSpeed;
+  } else if (speed > effectiveTargetSpeed) {
+    speed -= 35 * deltaTime;
+    if (speed < effectiveTargetSpeed) speed = effectiveTargetSpeed;
   }
 
-  // Apply speed multiplier from power-ups and obstacles
-  speed *= speedMultiplier;
-  // Ensure speed stays within bounds even after multiplier
-  speed = Math.max(GAME.MIN_SPEED, Math.min(speed, GAME.MAX_SPEED));
+  // Ensure speed stays within bounds
+  const effectiveMaxSpeed = GAME.MAX_SPEED * speedMultiplier;
+  const effectiveMinSpeed = GAME.MIN_SPEED * speedMultiplier;
+  speed = Math.max(effectiveMinSpeed, Math.min(speed, effectiveMaxSpeed));
 }
 
 export function getWorldZ() {

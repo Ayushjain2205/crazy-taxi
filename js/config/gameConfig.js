@@ -29,7 +29,7 @@ export const GAME = {
   INITIAL_LEVEL: 1,
   TIME_LIMIT: 30,
   INITIAL_SPEED: 10,
-  MIN_SPEED: 10,
+  MIN_SPEED: 0,
   MAX_SPEED: 100,
   JUMP_DURATION: 1,
   MAX_JUMP_HEIGHT: 2,
@@ -102,8 +102,8 @@ export const GREASE = {
   COLOR: 0x1a1a1a,
   WIDTH: 4,
   LENGTH: 8,
-  SPAWN_CHANCE: 0.15, // 15% chance to spawn grease at each position
-  SLOWDOWN_FACTOR: 0.5, // Reduces speed to 50% when driving over grease
-  EFFECT_DURATION: 1.5, // How long the slowdown effect lasts in seconds
+  SPAWN_CHANCE: 0.15,
+  SLOWDOWN_FACTOR: 0.1,
+  EFFECT_DURATION: 1.5,
   OPACITY: 0.7,
 };
