@@ -162,6 +162,25 @@ button:hover {
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(5px);
   transition: all 0.3s ease;
+  width: 250px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hud-label {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 120px;
+}
+
+.hud-value {
+  font-family: "Orbitron", monospace;
+  flex-shrink: 0;
+  text-align: right;
+  width: 100px;
 }
 
 #score {
