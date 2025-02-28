@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wild Wild Taxi Clone</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div id="instructions"
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); color: white; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+        <h1>Instructions</h1>
+        <p>Click 'Start' to read the game instructions.</p>
+        <p>Click 'Start' again to begin the game.</p>
+        <p>The level and time limit will be displayed before the game begins.</p>
+        <p>Press the up arrow to accelerate your car, and long-press it to increase speed. Use the down arrow to slow
+            down.</p>
+        <p>Navigate through traffic using the left and right arrow keys.</p>
+        <p>Press the space bar to jump over cars and earn extra points.</p>
+        <p>Avoid crashes to move to higher levels and earn additional time for each level.</p>
+        <button id="start-button">Start</button>
+    </div>
+    <div id="level-info"
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); color: white; display: none; justify-content: center; align-items: center; flex-direction: column;">
+        <h1>Level <span id="level">1</span></h1>
+        <p>Time Limit: <span id="time-limit">60</span> seconds</p>
+        <button id="begin-button">Start Game</button>
+    </div>
+    <div id="score" style="position: absolute; top: 10px; left: 10px; color: white;">Score: 0</div>
+    <div id="timer" style="position: absolute; top: 10px; right: 10px; color: white;">Time: 60</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>
