@@ -13,7 +13,8 @@ let score = 0;
 let speed = GAME.INITIAL_SPEED;
 let targetSpeed = GAME.INITIAL_SPEED; // Target speed for gradual acceleration
 let distance = 0;
-let distanceLeft = GAME.DISTANCE_GOAL;
+let currentDistanceGoal = GAME.DISTANCE_GOAL;
+let distanceLeft = currentDistanceGoal;
 let worldZ = 0;
 let timerInterval;
 let gameOverAnimationTime = 0;
@@ -46,13 +47,14 @@ export function initGameState() {
   speed = GAME.INITIAL_SPEED;
   targetSpeed = GAME.INITIAL_SPEED;
   distance = 0;
-  distanceLeft = GAME.DISTANCE_GOAL;
+  currentDistanceGoal = GAME.DISTANCE_GOAL;
+  distanceLeft = currentDistanceGoal;
   worldZ = 0;
 
   // Update UI elements
   levelSpan.textContent = level;
   timeLimitSpan.textContent = timeLimit;
-  distanceGoalSpan.textContent = GAME.DISTANCE_GOAL;
+  distanceGoalSpan.textContent = currentDistanceGoal;
   scoreDiv.textContent = "Score: " + score;
   timerDiv.textContent = "Time: " + remainingTime;
   speedDiv.textContent = "Speed: 0 km/h";
@@ -107,7 +109,8 @@ export function restartGame() {
   remainingTime = timeLimit;
   score = 0;
   distance = 0;
-  distanceLeft = GAME.DISTANCE_GOAL;
+  currentDistanceGoal = GAME.DISTANCE_GOAL;
+  distanceLeft = currentDistanceGoal;
   speed = GAME.INITIAL_SPEED;
   targetSpeed = GAME.INITIAL_SPEED;
 
@@ -117,7 +120,7 @@ export function restartGame() {
   // Reset UI
   levelSpan.textContent = level;
   timeLimitSpan.textContent = timeLimit;
-  distanceGoalSpan.textContent = GAME.DISTANCE_GOAL;
+  distanceGoalSpan.textContent = currentDistanceGoal;
   scoreDiv.textContent = "Score: 0";
   timerDiv.textContent = "Time: " + remainingTime;
   speedDiv.textContent = "Speed: 0 km/h";
@@ -131,6 +134,13 @@ export function restartGame() {
   const worldContainer = getWorldContainer();
   worldContainer.position.z = 0;
   worldZ = 0;
+
+  // Reset finish line position
+  const finishLine = getFinishLine();
+  if (finishLine) {
+    finishLine.position.z = currentDistanceGoal;
+    console.log("Reset finish line to position:", currentDistanceGoal);
+  }
 
   // Reset traffic cars
   resetTrafficCars();
@@ -154,11 +164,12 @@ export function updateGameState(deltaTime, jumpBonus) {
   if (gameState !== "playing") return;
 
   // Update world position and distance
-  distance += speed * deltaTime;
-  worldZ -= speed * deltaTime;
+  const distanceThisFrame = speed * deltaTime;
+  distance += distanceThisFrame;
+  worldZ -= distanceThisFrame;
 
-  // Update distance left
-  distanceLeft = Math.max(0, GAME.DISTANCE_GOAL - distance);
+  // Update distance left using current goal - make sure to use absolute distance
+  distanceLeft = Math.max(0, currentDistanceGoal - Math.abs(worldZ));
 
   // Update score
   score = Math.floor(distance) + jumpBonus;
@@ -169,18 +180,22 @@ export function updateGameState(deltaTime, jumpBonus) {
   distanceLeftDiv.textContent =
     "Distance: " + Math.floor(distanceLeft) + "m left";
 
-  // Don't trigger victory based on distance anymore
-  // Let the finish line crossing handle it instead
-
-  // Check for level advancement
-  if (distance >= 1000 * level) {
-    advanceLevel();
+  // Log current position and distance for debugging
+  if (Math.floor(Math.abs(worldZ)) % 100 === 0) {
+    console.log("Current worldZ:", worldZ);
+    console.log("Current distance:", Math.abs(worldZ));
+    console.log("Distance left:", distanceLeft);
+    console.log("Current goal:", currentDistanceGoal);
   }
 
   return worldZ;
 }
 
 export function handleVictory() {
+  // This function is kept for compatibility but is no longer used
+  // We now use advanceToNextLevel when crossing the finish line
+
+  // Legacy victory code:
   gameState = "victory";
   clearInterval(timerInterval);
 
@@ -202,6 +217,12 @@ export function handleVictory() {
 }
 
 function advanceLevel() {
+  // This function is deprecated and should not be used directly
+  // Use advanceToNextLevel() instead which properly handles the finish line
+  console.warn(
+    "advanceLevel() is deprecated, use advanceToNextLevel() instead"
+  );
+
   level += 1;
   remainingTime += 30;
   timerDiv.textContent = "Time: " + remainingTime;
@@ -210,6 +231,61 @@ function advanceLevel() {
   for (let i = 0; i < 3; i++) {
     createTrafficCar();
   }
+}
+
+// New function to handle finish line crossing
+export function advanceToNextLevel() {
+  // Increase level
+  level += 1;
+
+  // Add bonus time
+  remainingTime += 45;
+
+  // Reset distance for the new level
+  distance = 0;
+
+  // Increase distance goal for next level - multiplying by level number
+  currentDistanceGoal = GAME.DISTANCE_GOAL * level;
+  distanceLeft = currentDistanceGoal;
+
+  // Reset world position to the start
+  const worldContainer = getWorldContainer();
+  worldContainer.position.z = 0;
+  worldZ = 0;
+
+  // Move finish line to new position
+  const finishLine = getFinishLine();
+  if (finishLine) {
+    finishLine.position.z = currentDistanceGoal;
+    console.log("Moved finish line to new position:", currentDistanceGoal);
+  }
+
+  // Add more traffic
+  for (let i = 0; i < 5; i++) {
+    createTrafficCar();
+  }
+
+  // Update UI
+  levelSpan.textContent = level;
+  timerDiv.textContent = "Time: " + remainingTime;
+  distanceLeftDiv.textContent =
+    "Distance: " + Math.floor(distanceLeft) + "m left";
+  // Also update the distance goal display
+  distanceGoalSpan.textContent = currentDistanceGoal;
+
+  // Show level up notification
+  const levelUpDiv = document.createElement("div");
+  levelUpDiv.className = "level-up-notification";
+  levelUpDiv.innerHTML = `<h2>LEVEL ${level}</h2><p>Next Goal: ${currentDistanceGoal}m</p>`;
+  document.body.appendChild(levelUpDiv);
+
+  // Remove notification after 3 seconds
+  setTimeout(() => {
+    levelUpDiv.classList.add("fade-out");
+    setTimeout(() => {
+      document.body.removeChild(levelUpDiv);
+    }, 1000);
+  }, 3000);
 }
 
 export function getGameState() {
@@ -251,6 +327,10 @@ export function getWorldZ() {
 
 export function setWorldZ(value) {
   worldZ = value;
+}
+
+export function getCurrentDistanceGoal() {
+  return currentDistanceGoal;
 }
 
 export function setCrashAnimationActive(active) {

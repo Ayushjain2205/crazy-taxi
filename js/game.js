@@ -34,6 +34,7 @@ import {
   getGameOverAnimationTime,
   handleGameOver,
   handleVictory,
+  advanceToNextLevel,
 } from "./utils/gameState.js";
 import {
   checkCollisions,
@@ -115,10 +116,11 @@ function animate(time) {
 
   // Handle finish line crossing
   if (finishLineCrossed) {
-    console.log("Victory triggered! Finish line crossed!");
-    handleVictory();
-    renderer.render(getScene(), camera);
-    return;
+    console.log("=== FINISH LINE CROSSED ===");
+    console.log("World position:", worldContainer.position.z);
+    console.log("Distance traveled:", Math.abs(worldContainer.position.z));
+    console.log("Current level:", level);
+    advanceToNextLevel();
   }
 
   // Update game state (score, level, etc.)
@@ -126,8 +128,11 @@ function animate(time) {
 
   // Check if we need to loop the world
   if (worldZ <= -ROAD.LENGTH) {
+    console.log("=== LOOPING WORLD ===");
+    console.log("Previous worldZ:", worldZ);
     setWorldZ(0);
     worldContainer.position.z = 0;
+    console.log("Reset worldZ to:", getWorldZ());
 
     // Update traffic positions when world loops
     updateTrafficPositions();

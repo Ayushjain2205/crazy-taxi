@@ -1,6 +1,7 @@
 // Environment elements - road, ground, trees, mountains
 import { ROAD, MARKINGS, GRASS, GAME } from "../config/gameConfig.js";
 import { getWorldContainer } from "../utils/sceneSetup.js";
+import { getCurrentDistanceGoal } from "../utils/gameState.js";
 
 let road;
 let finishLine;
@@ -205,8 +206,20 @@ function createMountains(worldContainer) {
 }
 
 function createFinishLine(worldContainer) {
-  // Calculate finish line position based on distance goal
-  const finishLinePosition = GAME.DISTANCE_GOAL;
+  // Get the current distance goal from gameState
+  let currentDistanceGoal;
+  try {
+    // Try to get the current goal
+    currentDistanceGoal = getCurrentDistanceGoal();
+  } catch (e) {
+    // Fallback to default if function not available
+    currentDistanceGoal = GAME.DISTANCE_GOAL;
+    console.log("Using default distance goal:", currentDistanceGoal);
+  }
+
+  // Calculate finish line position based on current distance goal
+  const finishLinePosition = currentDistanceGoal;
+  console.log("Creating finish line at position:", finishLinePosition);
 
   // Create a checkered finish line
   const finishLineWidth = ROAD.WIDTH + 4; // Wider than the road
