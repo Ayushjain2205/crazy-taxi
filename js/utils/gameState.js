@@ -114,18 +114,24 @@ export function initGameState() {
 function startButtonClick() {
   instructionsDiv.style.display = "none";
   levelInfoDiv.style.display = "flex";
+  // Trigger reflow to ensure the transition works
+  levelInfoDiv.offsetHeight;
+  levelInfoDiv.classList.add("visible");
 }
 
 function beginButtonClick() {
-  levelInfoDiv.style.display = "none";
-  gameState = "playing";
-  timerInterval = setInterval(() => {
-    remainingTime--;
-    timerDiv.textContent = "Time: " + remainingTime;
-    if (remainingTime <= 0) {
-      handleGameOver("time_up");
-    }
-  }, 1000);
+  levelInfoDiv.classList.remove("visible");
+  setTimeout(() => {
+    levelInfoDiv.style.display = "none";
+    gameState = "playing";
+    timerInterval = setInterval(() => {
+      remainingTime--;
+      timerDiv.textContent = "Time: " + remainingTime;
+      if (remainingTime <= 0) {
+        handleGameOver("time_up");
+      }
+    }, 1000);
+  }, 300); // Match the CSS transition duration
 }
 
 export function handleGameOver(reason = "crash") {
