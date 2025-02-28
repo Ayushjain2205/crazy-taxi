@@ -83,6 +83,25 @@ export function initGameState() {
   beginButton.addEventListener("click", beginButtonClick);
   restartButton.addEventListener("click", restartGame);
 
+  // Add global keyboard listeners for buttons
+  document.addEventListener("keydown", (e) => {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault(); // Prevent page scroll on spacebar
+
+      // Handle based on game state
+      if (gameState === "start" && instructionsDiv.style.display === "flex") {
+        startButtonClick();
+      } else if (
+        gameState === "start" &&
+        levelInfoDiv.style.display === "flex"
+      ) {
+        beginButtonClick();
+      } else if (gameState === "gameover") {
+        restartGame();
+      }
+    }
+  });
+
   // Show instructions
   instructionsDiv.style.display = "flex";
   levelInfoDiv.style.display = "none";
