@@ -8,6 +8,12 @@ import {
 import { getTrafficCars } from "../components/traffic.js";
 import { getWorldContainer } from "../utils/sceneSetup.js";
 import { getFinishLine } from "../components/environment.js";
+import {
+  getCollectibles,
+  collectCoin,
+  collectPowerUp,
+} from "../components/collectibles.js";
+import { addCoins } from "./gameState.js";
 
 let jumpBonus = 0;
 let lastFinishLineZ = null;
@@ -17,6 +23,7 @@ export function checkCollisions() {
   const trafficCars = getTrafficCars();
   const worldContainer = getWorldContainer();
   const finishLine = getFinishLine();
+  const collectibles = getCollectibles();
 
   // Reset jump bonus at the start of collision detection
   jumpBonus = 0;
@@ -24,6 +31,30 @@ export function checkCollisions() {
   let collision = false;
   let collidedCar = null;
   let finishLineCrossed = false;
+  let collectedCoins = 0;
+  let timeBonus = 0;
+
+  // Check collectible collisions
+  collectibles.forEach((collectible) => {
+    const collectibleRelativeZ =
+      collectible.position.z + worldContainer.position.z;
+    if (
+      Math.abs(taxi.position.x - collectible.position.x) <
+        COLLISION.THRESHOLD_X &&
+      Math.abs(collectibleRelativeZ - taxi.position.z) < COLLISION.THRESHOLD_Z
+    ) {
+      if (collectible.userData.isCoin) {
+        const points = collectCoin(collectible);
+        collectedCoins += points;
+        addCoins(1); // Add one coin to the counter
+      } else if (collectible.userData.isPowerUp) {
+        const timeBonusAmount = collectPowerUp(collectible);
+        if (timeBonusAmount) {
+          timeBonus += timeBonusAmount;
+        }
+      }
+    }
+  });
 
   // Check if the taxi crossed the finish line
   if (finishLine) {
@@ -80,6 +111,8 @@ export function checkCollisions() {
     collidedCar,
     jumpBonus,
     finishLineCrossed,
+    collectedCoins,
+    timeBonus,
   };
 }
 

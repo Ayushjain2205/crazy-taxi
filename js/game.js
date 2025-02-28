@@ -35,12 +35,22 @@ import {
   handleGameOver,
   handleVictory,
   advanceToNextLevel,
+  addTimeBonus,
+  addScore,
 } from "./utils/gameState.js";
 import {
   checkCollisions,
   handleCollision,
   getJumpBonus,
 } from "./utils/collision.js";
+import {
+  spawnCollectibles,
+  updateCollectibles,
+  resetCollectibles,
+  cleanupCollectibles,
+  getSpeedBoostMultiplier,
+  isInvincible,
+} from "./components/collectibles.js";
 
 // Initialize game
 function initGame() {
@@ -61,6 +71,9 @@ function initGame() {
 
   // Initialize game state
   initGameState();
+
+  // Spawn initial collectibles
+  resetCollectibles();
 
   // Start animation loop
   animate(0);
@@ -105,14 +118,37 @@ function animate(time) {
   // Update taxi
   updateTaxi(deltaTime);
 
-  // Update speed based on input
-  updateSpeed(deltaTime, isPlayerAccelerating(), isPlayerDecelerating());
+  // Update collectibles
+  updateCollectibles(deltaTime);
+
+  // Update speed based on input and power-ups
+  const speedMultiplier = getSpeedBoostMultiplier();
+  updateSpeed(
+    deltaTime,
+    isPlayerAccelerating(),
+    isPlayerDecelerating(),
+    speedMultiplier
+  );
 
   // Move the world toward the player
   worldContainer.position.z -= getSpeed() * deltaTime;
 
   // Check for collisions and finish line crossing
-  const { collision, collidedCar, finishLineCrossed } = checkCollisions();
+  const {
+    collision,
+    collidedCar,
+    finishLineCrossed,
+    collectedCoins,
+    timeBonus,
+  } = checkCollisions();
+
+  // Handle collectibles
+  if (collectedCoins > 0) {
+    addScore(collectedCoins);
+  }
+  if (timeBonus > 0) {
+    addTimeBonus(timeBonus);
+  }
 
   // Handle finish line crossing
   if (finishLineCrossed) {
@@ -137,10 +173,14 @@ function animate(time) {
 
     // Update traffic positions when world loops
     updateTrafficPositions();
+
+    // Clean up old collectibles and spawn new ones
+    cleanupCollectibles(-ROAD.LENGTH);
+    spawnCollectibles(0, ROAD.LENGTH, 20);
   }
 
-  if (collision) {
-    // Collision detected!
+  if (collision && !isInvincible()) {
+    // Collision detected and not invincible!
     setCrashAnimationActive(true);
     handleCollision(collidedCar);
     handleGameOver();

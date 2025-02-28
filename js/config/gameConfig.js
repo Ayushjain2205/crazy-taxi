@@ -59,3 +59,41 @@ export const COLLISION = {
 export const EXPLOSION = {
   COLOR: 0xff5500,
 };
+
+export const COINS = {
+  RADIUS: 0.5,
+  HEIGHT: 0.2,
+  COLOR: 0xffd700,
+  ROTATION_SPEED: 2,
+  HOVER_AMPLITUDE: 0.2,
+  HOVER_SPEED: 2,
+  POINTS: 50,
+  SPAWN_CHANCE: 0.4, // 40% chance to spawn a coin at each position
+};
+
+export const POWERUPS = {
+  TYPES: {
+    SPEED_BOOST: {
+      COLOR: 0x00ff00,
+      DURATION: 5, // seconds
+      MULTIPLIER: 1.5,
+      MODEL_SCALE: 0.8,
+    },
+    TIME_BONUS: {
+      COLOR: 0x0000ff,
+      TIME_ADDED: 10, // seconds
+      MODEL_SCALE: 0.8,
+    },
+    INVINCIBILITY: {
+      COLOR: 0xff0000,
+      DURATION: 8, // seconds
+      MODEL_SCALE: 0.8,
+    },
+  },
+  RADIUS: 0.7,
+  HEIGHT: 0.7,
+  ROTATION_SPEED: 1.5,
+  HOVER_AMPLITUDE: 0.3,
+  HOVER_SPEED: 1.5,
+  SPAWN_CHANCE: 0.2, // 20% chance to spawn a power-up at each position
+};

@@ -11,6 +11,7 @@ let level = GAME.INITIAL_LEVEL;
 let timeLimit = GAME.TIME_LIMIT;
 let remainingTime = timeLimit;
 let score = 0;
+let coins = 0;
 let speed = GAME.INITIAL_SPEED;
 let targetSpeed = GAME.INITIAL_SPEED; // Target speed for gradual acceleration
 let distance = 0;
@@ -37,6 +38,9 @@ const speedDiv = document.getElementById("speed");
 const distanceLeftDiv = document.getElementById("distance-left");
 const finalScoreSpan = document.getElementById("final-score");
 const finishBanner = document.getElementById("finish-banner");
+const coinsDiv = document.getElementById("coins");
+const speedBoostStatus = document.getElementById("speed-boost");
+const invincibilityStatus = document.getElementById("invincibility");
 
 // New function to calculate time limit for a given level
 function calculateTimeLimitForLevel(level) {
@@ -52,6 +56,7 @@ export function initGameState() {
   timeLimit = calculateTimeLimitForLevel(level);
   remainingTime = timeLimit;
   score = 0;
+  coins = 0;
   speed = GAME.INITIAL_SPEED;
   targetSpeed = GAME.INITIAL_SPEED;
   distance = 0;
@@ -67,6 +72,11 @@ export function initGameState() {
   timerDiv.textContent = "Time: " + remainingTime;
   speedDiv.textContent = "Speed: 0 km/h";
   distanceLeftDiv.textContent = "Distance: " + distanceLeft + "m left";
+  coinsDiv.textContent = "Coins: " + coins;
+  speedBoostStatus.textContent = "Speed Boost: OFF";
+  speedBoostStatus.classList.remove("active");
+  invincibilityStatus.textContent = "Invincibility: OFF";
+  invincibilityStatus.classList.remove("active");
 
   // Set up event listeners
   startButton.addEventListener("click", startButtonClick);
@@ -121,6 +131,12 @@ export function restartGame() {
   distanceLeft = currentDistanceGoal;
   speed = GAME.INITIAL_SPEED;
   targetSpeed = GAME.INITIAL_SPEED;
+  coins = 0;
+  coinsDiv.textContent = "Coins: 0";
+  speedBoostStatus.textContent = "Speed Boost: OFF";
+  speedBoostStatus.classList.remove("active");
+  invincibilityStatus.textContent = "Invincibility: OFF";
+  invincibilityStatus.classList.remove("active");
 
   // Hide finish banner if visible
   finishBanner.style.display = "none";
@@ -383,4 +399,48 @@ export function getGameOverAnimationTime() {
 
 export function updateGameOverAnimationTime(deltaTime) {
   gameOverAnimationTime += deltaTime;
+}
+
+export function addScore(points) {
+  score += points;
+  scoreDiv.textContent = "Score: " + score;
+}
+
+export function addCoins(amount) {
+  coins += amount;
+  coinsDiv.textContent = "Coins: " + coins;
+}
+
+export function addTimeBonus(seconds = 2) {
+  // Default to 2 seconds
+  remainingTime += 2; // Always add 2 seconds
+  timerDiv.textContent = "⏱️ Time: " + remainingTime;
+
+  // Show time bonus popup
+  const popup = document.createElement("div");
+  popup.className = "time-bonus-popup";
+  popup.innerHTML = `+2s`; // Simpler format
+  document.body.appendChild(popup);
+
+  // Remove popup after animation
+  setTimeout(() => {
+    document.body.removeChild(popup);
+  }, 1000);
+}
+
+export function updatePowerUpStatus(type, active, timeLeft = 0) {
+  switch (type) {
+    case "SPEED_BOOST":
+      speedBoostStatus.innerHTML = active
+        ? `🚀 Speed Boost (${Math.ceil(timeLeft)}s)`
+        : "🚀 Speed Boost";
+      speedBoostStatus.classList.toggle("active", active);
+      break;
+    case "INVINCIBILITY":
+      invincibilityStatus.innerHTML = active
+        ? `⭐ Invincibility (${Math.ceil(timeLeft)}s)`
+        : "⭐ Invincibility";
+      invincibilityStatus.classList.toggle("active", active);
+      break;
+  }
 }
