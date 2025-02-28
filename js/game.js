@@ -194,7 +194,7 @@ function animate(time) {
     // Collision detected and not invincible!
     setCrashAnimationActive(true);
     handleCollision(collidedCar);
-    handleGameOver();
+    handleGameOver("crash");
   }
 
   // Render the scene

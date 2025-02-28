@@ -123,18 +123,24 @@ function beginButtonClick() {
     remainingTime--;
     timerDiv.textContent = "Time: " + remainingTime;
     if (remainingTime <= 0) {
-      handleGameOver();
+      handleGameOver("time_up");
     }
   }, 1000);
 }
 
-export function handleGameOver() {
+export function handleGameOver(reason = "crash") {
   gameState = "gameover";
   clearInterval(timerInterval);
 
-  // Show game over screen with crash message
-  gameOverDiv.querySelector("h1").textContent = "CRASH!";
-  gameOverDiv.querySelector("h2").textContent = "Game Over";
+  // Show game over screen with appropriate message based on reason
+  if (reason === "time_up") {
+    gameOverDiv.querySelector("h1").textContent = "TIME'S UP!";
+    gameOverDiv.querySelector("h2").textContent = "You ran out of time";
+  } else {
+    gameOverDiv.querySelector("h1").textContent = "CRASH!";
+    gameOverDiv.querySelector("h2").textContent = "Game Over";
+  }
+
   finalScoreSpan.textContent = score;
   document.getElementById("final-coins").textContent = coins;
   gameOverDiv.style.display = "flex";
