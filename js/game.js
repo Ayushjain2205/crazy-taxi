@@ -116,11 +116,12 @@ function animate(time) {
 
   // Handle finish line crossing
   if (finishLineCrossed) {
-    console.log("=== FINISH LINE CROSSED ===");
+    console.log("=== FINISH LINE CROSSED IN GAME LOOP ===");
+    console.log("Game state before advancing:", gameState);
     console.log("World position:", worldContainer.position.z);
     console.log("Distance traveled:", Math.abs(worldContainer.position.z));
-    console.log("Current level:", level);
     advanceToNextLevel();
+    console.log("Game state after advancing:", getGameState());
   }
 
   // Update game state (score, level, etc.)

@@ -31,30 +31,27 @@ export function checkCollisions() {
     const finishLineRelativeZ =
       finishLine.position.z + worldContainer.position.z;
     const taxiZ = taxi.position.z;
+    const distanceToFinish = Math.abs(finishLineRelativeZ - taxiZ);
 
-    // Print finish line position for debugging (once per second)
-    if (
-      !lastFinishLineZ ||
-      Math.abs(lastFinishLineZ - finishLineRelativeZ) > 10
-    ) {
-      console.log("Debug - Finish line check:");
-      console.log("  Finish line absolute Z:", finishLine.position.z);
-      console.log("  World container Z:", worldContainer.position.z);
-      console.log("  Finish line relative Z:", finishLineRelativeZ);
-      console.log("  Taxi Z:", taxiZ);
-      console.log("  Taxi X:", taxi.position.x);
-      lastFinishLineZ = finishLineRelativeZ;
-    }
+    // More frequent debug logging
+    console.log("Finish line check:");
+    console.log("  Distance to finish:", distanceToFinish);
+    console.log("  Finish line Z:", finishLine.position.z);
+    console.log("  World Z:", worldContainer.position.z);
+    console.log("  Relative Z:", finishLineRelativeZ);
+    console.log("  Taxi Z:", taxiZ);
+    console.log("  Taxi X:", taxi.position.x);
 
-    // Improved finish line crossing detection
-    // The taxi should be within the road width and close to the finish line Z position
-    if (
-      Math.abs(finishLineRelativeZ - taxiZ) < 10 &&
-      Math.abs(taxi.position.x) < ROAD.WIDTH / 2
-    ) {
-      console.log("FINISH LINE CROSSED!");
-      console.log("  At position:", finishLineRelativeZ);
-      console.log("  Taxi position:", taxi.position.toArray());
+    // More lenient finish line crossing detection
+    if (distanceToFinish < 25 && Math.abs(taxi.position.x) < ROAD.WIDTH) {
+      console.log("=== FINISH LINE CROSSED! ===");
+      console.log("Distance to finish when crossed:", distanceToFinish);
+      console.log("Taxi position:", taxi.position.toArray());
+      console.log("Finish line position:", finishLine.position.toArray());
+      console.log(
+        "World container position:",
+        worldContainer.position.toArray()
+      );
       finishLineCrossed = true;
     }
   }

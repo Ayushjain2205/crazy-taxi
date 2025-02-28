@@ -3,6 +3,7 @@ import { GAME } from "../config/gameConfig.js";
 import { resetTaxi } from "../components/taxi.js";
 import { resetTrafficCars, createTrafficCar } from "../components/traffic.js";
 import { getWorldContainer } from "../utils/sceneSetup.js";
+import { getFinishLine } from "../components/environment.js";
 
 // Game state variables
 let gameState = "start"; // start, playing, gameover, victory
@@ -37,11 +38,18 @@ const distanceLeftDiv = document.getElementById("distance-left");
 const finalScoreSpan = document.getElementById("final-score");
 const finishBanner = document.getElementById("finish-banner");
 
+// New function to calculate time limit for a given level
+function calculateTimeLimitForLevel(level) {
+  const baseTime = GAME.TIME_LIMIT;
+  const reduction = (level - 1) * GAME.TIME_DECREASE_PER_LEVEL;
+  return Math.max(GAME.MIN_TIME_LIMIT, baseTime - reduction);
+}
+
 export function initGameState() {
   // Set up initial state
   gameState = "start";
   level = GAME.INITIAL_LEVEL;
-  timeLimit = GAME.TIME_LIMIT;
+  timeLimit = calculateTimeLimitForLevel(level);
   remainingTime = timeLimit;
   score = 0;
   speed = GAME.INITIAL_SPEED;
@@ -235,17 +243,21 @@ function advanceLevel() {
 
 // New function to handle finish line crossing
 export function advanceToNextLevel() {
+  console.log("=== ADVANCING TO NEXT LEVEL ===");
+  console.log("Current level:", level);
+
   // Increase level
   level += 1;
+  console.log("New level:", level);
 
-  // Add bonus time
-  remainingTime += 45;
+  // Calculate new time limit for this level
+  timeLimit = calculateTimeLimitForLevel(level);
+  remainingTime = timeLimit;
+  console.log("New time limit:", timeLimit);
 
   // Reset distance for the new level
   distance = 0;
-
-  // Increase distance goal for next level - multiplying by level number
-  currentDistanceGoal = GAME.DISTANCE_GOAL * level;
+  currentDistanceGoal = GAME.DISTANCE_GOAL; // Keep distance constant
   distanceLeft = currentDistanceGoal;
 
   // Reset world position to the start
@@ -260,8 +272,8 @@ export function advanceToNextLevel() {
     console.log("Moved finish line to new position:", currentDistanceGoal);
   }
 
-  // Add more traffic
-  for (let i = 0; i < 5; i++) {
+  // Add more traffic and increase difficulty
+  for (let i = 0; i < Math.min(level + 2, 8); i++) {
     createTrafficCar();
   }
 
@@ -270,22 +282,46 @@ export function advanceToNextLevel() {
   timerDiv.textContent = "Time: " + remainingTime;
   distanceLeftDiv.textContent =
     "Distance: " + Math.floor(distanceLeft) + "m left";
-  // Also update the distance goal display
   distanceGoalSpan.textContent = currentDistanceGoal;
 
-  // Show level up notification
+  // Show level up notification with time limit info
   const levelUpDiv = document.createElement("div");
   levelUpDiv.className = "level-up-notification";
-  levelUpDiv.innerHTML = `<h2>LEVEL ${level}</h2><p>Next Goal: ${currentDistanceGoal}m</p>`;
+  levelUpDiv.innerHTML = `
+    <h2>LEVEL ${level}</h2>
+    <p>Distance Goal: ${currentDistanceGoal}m</p>
+    <p>Time Limit: ${timeLimit}s</p>
+  `;
+  console.log("Creating level up notification:", levelUpDiv);
+  console.log("Level up notification properties:", {
+    className: levelUpDiv.className,
+    innerHTML: levelUpDiv.innerHTML,
+    style: window.getComputedStyle(levelUpDiv),
+  });
   document.body.appendChild(levelUpDiv);
+  console.log("Level up notification added to DOM");
+  console.log(
+    "Level up notification computed style after append:",
+    window.getComputedStyle(levelUpDiv)
+  );
 
-  // Remove notification after 3 seconds
+  // Remove notification after animation
   setTimeout(() => {
+    console.log("Starting fade-out animation");
     levelUpDiv.classList.add("fade-out");
     setTimeout(() => {
+      console.log("Removing level up notification from DOM");
       document.body.removeChild(levelUpDiv);
     }, 1000);
   }, 3000);
+
+  // Reset taxi position
+  resetTaxi();
+
+  // Reset traffic positions
+  resetTrafficCars();
+
+  console.log("=== LEVEL ADVANCEMENT COMPLETE ===");
 }
 
 export function getGameState() {

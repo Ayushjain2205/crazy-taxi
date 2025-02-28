@@ -225,12 +225,12 @@ function createFinishLine(worldContainer) {
   const finishLineWidth = ROAD.WIDTH + 4; // Wider than the road
   const finishLineDepth = 5;
 
-  // COMPLETELY NEW APPROACH: Create the finish line as a group of individual tiles
+  // Create the finish line as a group of individual tiles
   const finishLine = new THREE.Group();
-  finishLine.position.y = 0.1; // Slightly above the road
+  finishLine.position.y = 0.01; // Just above the road to prevent z-fighting
   finishLine.position.z = finishLinePosition;
 
-  // Mark the finish line as non-obstacle
+  // Mark the finish line for collision detection
   finishLine.userData = {
     isFinishLine: true,
     isObstacle: false,
@@ -262,6 +262,10 @@ function createFinishLine(worldContainer) {
 
   // Add finish line to the world
   worldContainer.add(finishLine);
+  console.log(
+    "Finish line created and added to world at Z:",
+    finishLinePosition
+  );
 
   return finishLine;
 }

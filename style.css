@@ -178,27 +178,42 @@ button:hover {
   transform: translate(-50%, -50%);
   background-color: rgba(0, 0, 100, 0.8);
   color: #fff;
-  padding: 20px 40px;
-  border-radius: 10px;
+  padding: 30px 50px;
+  border-radius: 15px;
   font-family: "Orbitron", sans-serif;
   text-align: center;
   z-index: 50;
-  animation: fadeIn 0.5s ease-in;
-  box-shadow: 0 0 20px rgba(51, 153, 255, 0.7);
+  animation: fadeIn 0.5s ease-in, pulse 2s infinite;
+  box-shadow: 0 0 30px rgba(51, 153, 255, 0.8);
+  border: 2px solid rgba(51, 153, 255, 0.5);
 }
 
 .level-up-notification h2 {
   margin: 0;
   color: #ffcc00;
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+  font-size: 3rem;
+  margin-bottom: 15px;
+  text-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+  letter-spacing: 2px;
 }
 
 .level-up-notification p {
-  margin: 0;
+  margin: 8px 0;
   font-size: 1.5rem;
   color: #fff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 30px rgba(51, 153, 255, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(51, 153, 255, 1);
+  }
+  100% {
+    box-shadow: 0 0 30px rgba(51, 153, 255, 0.8);
+  }
 }
 
 .fade-out {
@@ -208,21 +223,21 @@ button:hover {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -70%);
+    transform: translate(-50%, -70%) scale(0.8);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
 @keyframes fadeOut {
   from {
     opacity: 1;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1);
   }
   to {
     opacity: 0;
-    transform: translate(-50%, -30%);
+    transform: translate(-50%, -30%) scale(0.8);
   }
 }
