@@ -14,6 +14,9 @@ export function createEnvironment() {
 
   // Create finish line
   finishLine = createFinishLine(worldContainer);
+
+  // Create billboards
+  createBillboards(worldContainer);
 }
 
 function createRoad(worldContainer) {
@@ -271,6 +274,98 @@ function createFinishLine(worldContainer) {
   );
 
   return finishLine;
+}
+
+function createBillboards(worldContainer) {
+  const billboardCount = 8;
+  const billboardSpacing = ROAD.LENGTH / billboardCount;
+  const billboardWidth = 20;
+  const billboardHeight = 10;
+  const distanceFromRoad = ROAD.WIDTH / 2 + 15; // 15 units from road edge
+
+  // Advertisement messages
+  const advertisements = [
+    "CRAZY TAXI - Best Ride in Town!",
+    "Need Speed? Call Crazy Taxi!",
+    "Fast & Safe - That's Crazy Taxi",
+    "Download Crazy Taxi App Today!",
+    "5-Star Rides Guaranteed",
+    "24/7 Taxi Service",
+    "Best Rates in Town",
+    "Join the Crazy Taxi Family!",
+  ];
+
+  for (let i = 0; i < billboardCount; i++) {
+    // Start billboards after some distance and space them out
+    const z = 200 + i * billboardSpacing;
+
+    // Alternate between left and right sides
+    const side = i % 2 === 0 ? -1 : 1;
+    const x = side * distanceFromRoad;
+
+    // Create the billboard structure
+    const postGeometry = new THREE.CylinderGeometry(0.5, 0.5, 8, 8);
+    const postMaterial = new THREE.MeshBasicMaterial({ color: 0x4a4a4a });
+    const post = new THREE.Mesh(postGeometry, postMaterial);
+    post.position.y = 4; // Half the height
+
+    // Create the sign panel
+    const signGeometry = new THREE.PlaneGeometry(
+      billboardWidth,
+      billboardHeight
+    );
+    const signMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      side: THREE.FrontSide, // Changed to FrontSide
+    });
+    const sign = new THREE.Mesh(signGeometry, signMaterial);
+    sign.position.y = 9; // Position above post
+
+    // Create text for the billboard
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 256;
+    const context = canvas.getContext("2d");
+
+    // Set background
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Add text
+    context.fillStyle = "#000000";
+    context.font = "bold 48px Arial";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(
+      advertisements[i % advertisements.length],
+      canvas.width / 2,
+      canvas.height / 2
+    );
+
+    // Create texture from canvas
+    const texture = new THREE.CanvasTexture(canvas);
+    sign.material.map = texture;
+    sign.material.needsUpdate = true;
+
+    // Group post and sign
+    const billboard = new THREE.Group();
+    billboard.add(post);
+    billboard.add(sign);
+
+    // Position the billboard
+    billboard.position.set(x, 0, z);
+
+    // Rotate the sign to face towards the road
+    // For left side billboards (negative side), rotate clockwise
+    // For right side billboards (positive side), rotate counter-clockwise
+    if (side < 0) {
+      sign.rotation.y = Math.PI - Math.PI / 6; // Left side
+    } else {
+      sign.rotation.y = Math.PI / 6; // Right side
+    }
+
+    worldContainer.add(billboard);
+  }
 }
 
 export function getRoad() {
