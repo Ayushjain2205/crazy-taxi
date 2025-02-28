@@ -291,9 +291,8 @@ export function advanceToNextLevel() {
   remainingTime = timeLimit;
   console.log("New time limit:", timeLimit);
 
-  // Reset distance for the new level
-  distance = 0;
-  currentDistanceGoal = GAME.DISTANCE_GOAL; // Keep distance constant
+  // Keep the current score and maintain constant distance goal
+  currentDistanceGoal = GAME.DISTANCE_GOAL; // Keep distance constant at 1000m
   distanceLeft = currentDistanceGoal;
 
   // Reset world position to the start
@@ -313,51 +312,36 @@ export function advanceToNextLevel() {
     createTrafficCar();
   }
 
+  // Add level completion bonus
+  const levelBonus = level * 1000; // 1000 points per level completed
+  score += levelBonus;
+
   // Update UI
   levelSpan.textContent = level;
   timerDiv.textContent = "Time: " + remainingTime;
   distanceLeftDiv.textContent =
     "Distance: " + Math.floor(distanceLeft) + "m left";
   distanceGoalSpan.textContent = currentDistanceGoal;
+  scoreDiv.textContent = "Score: " + score;
 
-  // Show level up notification with time limit info
+  // Show level up notification with time limit info and bonus points
   const levelUpDiv = document.createElement("div");
   levelUpDiv.className = "level-up-notification";
   levelUpDiv.innerHTML = `
-    <h2>LEVEL ${level}</h2>
-    <p>Distance Goal: ${currentDistanceGoal}m</p>
+    <h2>LEVEL ${level} COMPLETE!</h2>
+    <p>Level Bonus: +${levelBonus} points</p>
+    <p>Next Goal: ${currentDistanceGoal}m</p>
     <p>Time Limit: ${timeLimit}s</p>
+    <p>Difficulty: ${level > 1 ? "⚠️ Less time to reach the goal!" : ""}</p>
   `;
-  console.log("Creating level up notification:", levelUpDiv);
-  console.log("Level up notification properties:", {
-    className: levelUpDiv.className,
-    innerHTML: levelUpDiv.innerHTML,
-    style: window.getComputedStyle(levelUpDiv),
-  });
   document.body.appendChild(levelUpDiv);
-  console.log("Level up notification added to DOM");
-  console.log(
-    "Level up notification computed style after append:",
-    window.getComputedStyle(levelUpDiv)
-  );
 
-  // Remove notification after animation
+  // Remove the notification after 3 seconds
   setTimeout(() => {
-    console.log("Starting fade-out animation");
-    levelUpDiv.classList.add("fade-out");
-    setTimeout(() => {
-      console.log("Removing level up notification from DOM");
-      document.body.removeChild(levelUpDiv);
-    }, 1000);
+    document.body.removeChild(levelUpDiv);
   }, 3000);
 
-  // Reset taxi position
-  resetTaxi();
-
-  // Reset traffic positions
-  resetTrafficCars();
-
-  console.log("=== LEVEL ADVANCEMENT COMPLETE ===");
+  console.log("Level up complete - Score:", score);
 }
 
 export function getGameState() {
