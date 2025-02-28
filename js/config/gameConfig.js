@@ -22,7 +22,7 @@ export const TAXI = {
 
 export const TRAFFIC = {
   COLOR: 0xff0000,
-  INITIAL_COUNT: 15,
+  INITIAL_COUNT: 25,
 };
 
 export const GAME = {
