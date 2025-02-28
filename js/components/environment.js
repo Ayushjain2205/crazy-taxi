@@ -668,49 +668,45 @@ function createFinishLine(worldContainer) {
 }
 
 function createBillboards(worldContainer) {
-  const billboardCount = 8;
-  const billboardSpacing = ROAD.LENGTH / billboardCount;
+  const billboardCount = 32; // Doubled from 16 to 32
+  const billboardSpacing = (ROAD.LENGTH / billboardCount) * 0.8;
   const billboardWidth = 20;
   const billboardHeight = 10;
-  const distanceFromRoad = ROAD.WIDTH / 2 + 15; // 15 units from road edge
+  const distanceFromRoad = ROAD.WIDTH / 2 + 12;
 
   // Advertisement messages
   const advertisements = [
-    "CRAZY TAXI - Best Ride in Town!",
-    "Need Speed? Call Crazy Taxi!",
-    "Fast & Safe - That's Crazy Taxi",
-    "Download Crazy Taxi App Today!",
-    "5-Star Rides Guaranteed",
-    "24/7 Taxi Service",
-    "Best Rates in Town",
-    "Join the Crazy Taxi Family!",
+    "Put your ads here!",
+    "Ads by Crazy Taxi",
+    "iyushjain.com",
+    "Your Ad Could Be Here",
+    "Ad Space Available",
+    "Best Taxi Game",
   ];
 
   for (let i = 0; i < billboardCount; i++) {
-    // Start billboards after some distance and space them out
-    const z = 200 + i * billboardSpacing;
-
-    // Alternate between left and right sides
-    const side = i % 2 === 0 ? -1 : 1;
-    const x = side * distanceFromRoad;
+    const z = 150 + i * billboardSpacing;
+    const side =
+      Math.random() < 0.7 ? (i % 2 === 0 ? -1 : 1) : i % 2 === 0 ? 1 : -1;
+    const x = side * (distanceFromRoad + Math.random() * 5);
 
     // Create the billboard structure
     const postGeometry = new THREE.CylinderGeometry(0.5, 0.5, 8, 8);
     const postMaterial = new THREE.MeshBasicMaterial({ color: 0x4a4a4a });
     const post = new THREE.Mesh(postGeometry, postMaterial);
-    post.position.y = 4; // Half the height
+    post.position.y = 4;
 
     // Create the sign panel
     const signGeometry = new THREE.PlaneGeometry(
-      billboardWidth,
-      billboardHeight
+      billboardWidth * (0.8 + Math.random() * 0.4),
+      billboardHeight * (0.8 + Math.random() * 0.4)
     );
     const signMaterial = new THREE.MeshBasicMaterial({
       color: 0xffffff,
-      side: THREE.FrontSide, // Changed to FrontSide
+      side: THREE.DoubleSide,
     });
     const sign = new THREE.Mesh(signGeometry, signMaterial);
-    sign.position.y = 9; // Position above post
+    sign.position.y = 9;
 
     // Create text for the billboard
     const canvas = document.createElement("canvas");
@@ -718,11 +714,15 @@ function createBillboards(worldContainer) {
     canvas.height = 256;
     const context = canvas.getContext("2d");
 
-    // Set background
-    context.fillStyle = "#ffffff";
+    // Set background with slight color variation
+    const bgColor = Math.random() < 0.3 ? "#f0f0f0" : "#ffffff";
+    context.fillStyle = bgColor;
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Add text
+    // Add text with lateral inversion
+    context.save();
+    context.translate(canvas.width, 0);
+    context.scale(-1, 1);
     context.fillStyle = "#000000";
     context.font = "bold 48px Arial";
     context.textAlign = "center";
@@ -732,6 +732,7 @@ function createBillboards(worldContainer) {
       canvas.width / 2,
       canvas.height / 2
     );
+    context.restore();
 
     // Create texture from canvas
     const texture = new THREE.CanvasTexture(canvas);
@@ -743,16 +744,16 @@ function createBillboards(worldContainer) {
     billboard.add(post);
     billboard.add(sign);
 
-    // Position the billboard
-    billboard.position.set(x, 0, z);
+    // Position the billboard with slight random height variation
+    billboard.position.set(x, Math.random() * 0.5, z);
 
-    // Rotate the sign to face towards the road
-    // For left side billboards (negative side), rotate clockwise
-    // For right side billboards (positive side), rotate counter-clockwise
+    // Adjust rotation to face oncoming traffic
     if (side < 0) {
-      sign.rotation.y = Math.PI - Math.PI / 6; // Left side
+      // Left side of road - face towards oncoming traffic
+      sign.rotation.y = -Math.PI / 6; // Rotate slightly inward
     } else {
-      sign.rotation.y = Math.PI / 6; // Right side
+      // Right side of road - face towards oncoming traffic
+      sign.rotation.y = Math.PI / 6; // Rotate slightly inward
     }
 
     worldContainer.add(billboard);
