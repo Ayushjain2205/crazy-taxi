@@ -104,24 +104,69 @@ button:hover {
   box-shadow: 0 0 15px rgba(255, 204, 0, 0.7);
 }
 
-#score,
-#timer {
+#hud {
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+}
+
+#left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#right-panel {
+  display: flex;
+  justify-content: flex-end;
+}
+
+#score,
+#timer,
+#speed,
+#distance-left {
   color: white;
   font-family: "Orbitron", sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   background-color: rgba(0, 0, 0, 0.5);
   padding: 10px 15px;
   border-radius: 4px;
-  z-index: 10;
 }
 
 #score {
-  top: 20px;
-  left: 20px;
+  color: #ffcc00;
 }
 
 #timer {
-  top: 20px;
-  right: 20px;
+  color: #33cc33;
+}
+
+#speed {
+  color: #3399ff;
+}
+
+#distance-left {
+  color: #ff9933;
+}
+
+#finish-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #ffcc00;
+  padding: 20px 40px;
+  border-radius: 10px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 2rem;
+  text-align: center;
+  z-index: 50;
+  display: none;
 }

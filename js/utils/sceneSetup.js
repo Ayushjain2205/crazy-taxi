@@ -17,9 +17,9 @@ export function initScene() {
     1000
   );
 
-  // Position the camera
-  camera.position.set(0, 5, -15);
-  camera.lookAt(0, 0, 10);
+  // Position the camera - raised higher for better view
+  camera.position.set(0, 7, -20);
+  camera.lookAt(0, 0, 30); // Look further ahead
 
   // Set up the renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -29,6 +29,8 @@ export function initScene() {
 
   // Create game world container - everything will move inside this
   worldContainer = new THREE.Group();
+  // Set initial position of world container so road starts properly
+  worldContainer.position.z = -50;
   scene.add(worldContainer);
 
   // Handle window resize

@@ -23,7 +23,8 @@
     </div>
     <div id="level-info">
         <h1>Level <span id="level">1</span></h1>
-        <p>Time Limit: <span id="time-limit">60</span> seconds</p>
+        <p>Time Limit: <span id="time-limit">30</span> seconds</p>
+        <p>Distance Goal: <span id="distance-goal">1000</span> meters</p>
         <button id="begin-button">Start Game</button>
     </div>
     <div id="game-over" style="display: none;">
@@ -32,8 +33,18 @@
         <p>Your score: <span id="final-score">0</span></p>
         <button id="restart-button">Play Again</button>
     </div>
-    <div id="score">Score: 0</div>
-    <div id="timer">Time: 60</div>
+    <div id="hud">
+        <div id="left-panel">
+            <div id="score">Score: 0</div>
+            <div id="speed">Speed: 0 km/h</div>
+            <div id="distance-left">Distance: 1000m left</div>
+        </div>
+        <div id="right-panel">
+            <div id="timer">Time: 30</div>
+        </div>
+    </div>
+
+    <div id="finish-banner">CONGRATULATIONS! You made it!</div>
 
     <!-- Load Three.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

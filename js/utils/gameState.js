@@ -5,13 +5,15 @@ import { resetTrafficCars, createTrafficCar } from "../components/traffic.js";
 import { getWorldContainer } from "../utils/sceneSetup.js";
 
 // Game state variables
-let gameState = "start"; // start, playing, gameover
+let gameState = "start"; // start, playing, gameover, victory
 let level = GAME.INITIAL_LEVEL;
 let timeLimit = GAME.TIME_LIMIT;
 let remainingTime = timeLimit;
 let score = 0;
 let speed = GAME.INITIAL_SPEED;
+let targetSpeed = GAME.INITIAL_SPEED; // Target speed for gradual acceleration
 let distance = 0;
+let distanceLeft = GAME.DISTANCE_GOAL;
 let worldZ = 0;
 let timerInterval;
 let gameOverAnimationTime = 0;
@@ -26,24 +28,45 @@ const beginButton = document.getElementById("begin-button");
 const restartButton = document.getElementById("restart-button");
 const levelSpan = document.getElementById("level");
 const timeLimitSpan = document.getElementById("time-limit");
+const distanceGoalSpan = document.getElementById("distance-goal");
 const scoreDiv = document.getElementById("score");
 const timerDiv = document.getElementById("timer");
+const speedDiv = document.getElementById("speed");
+const distanceLeftDiv = document.getElementById("distance-left");
 const finalScoreSpan = document.getElementById("final-score");
+const finishBanner = document.getElementById("finish-banner");
 
 export function initGameState() {
-  // Set initial UI values
+  // Set up initial state
+  gameState = "start";
+  level = GAME.INITIAL_LEVEL;
+  timeLimit = GAME.TIME_LIMIT;
+  remainingTime = timeLimit;
+  score = 0;
+  speed = GAME.INITIAL_SPEED;
+  targetSpeed = GAME.INITIAL_SPEED;
+  distance = 0;
+  distanceLeft = GAME.DISTANCE_GOAL;
+  worldZ = 0;
+
+  // Update UI elements
   levelSpan.textContent = level;
   timeLimitSpan.textContent = timeLimit;
+  distanceGoalSpan.textContent = GAME.DISTANCE_GOAL;
+  scoreDiv.textContent = "Score: " + score;
   timerDiv.textContent = "Time: " + remainingTime;
+  speedDiv.textContent = "Speed: 0 km/h";
+  distanceLeftDiv.textContent = "Distance: " + distanceLeft + "m left";
 
-  // Make sure level info is initially hidden
-  levelInfoDiv.style.display = "none";
-  gameOverDiv.style.display = "none";
-
-  // Handle start button clicks
+  // Set up event listeners
   startButton.addEventListener("click", startButtonClick);
   beginButton.addEventListener("click", beginButtonClick);
   restartButton.addEventListener("click", restartGame);
+
+  // Show instructions
+  instructionsDiv.style.display = "flex";
+  levelInfoDiv.style.display = "none";
+  gameOverDiv.style.display = "none";
 
   // Export the game state to window for access by controls
   window._getGameState = getGameState;
@@ -70,7 +93,9 @@ export function handleGameOver() {
   gameState = "gameover";
   clearInterval(timerInterval);
 
-  // Show game over screen
+  // Show game over screen with crash message
+  gameOverDiv.querySelector("h1").textContent = "CRASH!";
+  gameOverDiv.querySelector("h2").textContent = "Game Over";
   finalScoreSpan.textContent = score;
   gameOverDiv.style.display = "flex";
 }
@@ -82,13 +107,21 @@ export function restartGame() {
   remainingTime = timeLimit;
   score = 0;
   distance = 0;
+  distanceLeft = GAME.DISTANCE_GOAL;
   speed = GAME.INITIAL_SPEED;
+  targetSpeed = GAME.INITIAL_SPEED;
+
+  // Hide finish banner if visible
+  finishBanner.style.display = "none";
 
   // Reset UI
   levelSpan.textContent = level;
   timeLimitSpan.textContent = timeLimit;
-  timerDiv.textContent = "Time: " + remainingTime;
+  distanceGoalSpan.textContent = GAME.DISTANCE_GOAL;
   scoreDiv.textContent = "Score: 0";
+  timerDiv.textContent = "Time: " + remainingTime;
+  speedDiv.textContent = "Speed: 0 km/h";
+  distanceLeftDiv.textContent = "Distance: " + distanceLeft + "m left";
   gameOverDiv.style.display = "none";
 
   // Reset taxi
@@ -124,9 +157,20 @@ export function updateGameState(deltaTime, jumpBonus) {
   distance += speed * deltaTime;
   worldZ -= speed * deltaTime;
 
+  // Update distance left
+  distanceLeft = Math.max(0, GAME.DISTANCE_GOAL - distance);
+
   // Update score
   score = Math.floor(distance) + jumpBonus;
+
+  // Update UI
   scoreDiv.textContent = "Score: " + score;
+  speedDiv.textContent = "Speed: " + Math.floor(speed) + " km/h";
+  distanceLeftDiv.textContent =
+    "Distance: " + Math.floor(distanceLeft) + "m left";
+
+  // Don't trigger victory based on distance anymore
+  // Let the finish line crossing handle it instead
 
   // Check for level advancement
   if (distance >= 1000 * level) {
@@ -134,6 +178,27 @@ export function updateGameState(deltaTime, jumpBonus) {
   }
 
   return worldZ;
+}
+
+export function handleVictory() {
+  gameState = "victory";
+  clearInterval(timerInterval);
+
+  // Show finish banner with animation
+  finishBanner.style.display = "block";
+
+  // Animate banner
+  setTimeout(() => {
+    // After 3 seconds, hide banner and show victory screen
+    finishBanner.style.display = "none";
+
+    // Show game over screen with victory message
+    gameOverDiv.querySelector("h1").textContent = "SUCCESS!";
+    gameOverDiv.querySelector("h2").textContent =
+      "You reached the finish line!";
+    finalScoreSpan.textContent = score;
+    gameOverDiv.style.display = "flex";
+  }, 3000);
 }
 
 function advanceLevel() {
@@ -148,7 +213,7 @@ function advanceLevel() {
 }
 
 export function getGameState() {
-  return gameState;
+  return gameState; // start, playing, gameover, victory
 }
 
 export function setGameState(state) {
@@ -161,11 +226,22 @@ export function getSpeed() {
 
 export function updateSpeed(deltaTime, isAccelerating, isDecelerating) {
   if (isAccelerating) {
-    speed += 20 * deltaTime;
-    if (speed > GAME.MAX_SPEED) speed = GAME.MAX_SPEED;
+    // Set target speed based on acceleration
+    targetSpeed += 30 * deltaTime;
+    if (targetSpeed > GAME.MAX_SPEED) targetSpeed = GAME.MAX_SPEED;
   } else if (isDecelerating) {
-    speed -= 20 * deltaTime;
-    if (speed < GAME.MIN_SPEED) speed = GAME.MIN_SPEED;
+    // Set target speed based on deceleration
+    targetSpeed -= 30 * deltaTime;
+    if (targetSpeed < GAME.MIN_SPEED) targetSpeed = GAME.MIN_SPEED;
+  }
+
+  // Gradually adjust actual speed towards target speed
+  if (speed < targetSpeed) {
+    speed += 15 * deltaTime; // Accelerate more gradually
+    if (speed > targetSpeed) speed = targetSpeed;
+  } else if (speed > targetSpeed) {
+    speed -= 25 * deltaTime; // Decelerate a bit faster
+    if (speed < targetSpeed) speed = targetSpeed;
   }
 }
 

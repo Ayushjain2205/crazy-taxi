@@ -1,38 +1,37 @@
 // Environment elements - road, ground, trees, mountains
-import { ROAD, MARKINGS, GRASS } from "../config/gameConfig.js";
+import { ROAD, MARKINGS, GRASS, GAME } from "../config/gameConfig.js";
 import { getWorldContainer } from "../utils/sceneSetup.js";
 
 let road;
+let finishLine;
 
 export function createEnvironment() {
   const worldContainer = getWorldContainer();
 
-  // Create the road
-  createRoad(worldContainer);
+  // Create the road and all environment elements
+  road = createRoad(worldContainer);
 
-  // Add lane markings
-  addLaneMarkings(worldContainer);
-
-  // Create grass on both sides of the road
-  createGrass(worldContainer);
-
-  // Create trees along the road
-  createTrees(worldContainer);
-
-  // Create mountains in the background
-  createMountains(worldContainer);
+  // Create finish line
+  finishLine = createFinishLine(worldContainer);
 }
 
 function createRoad(worldContainer) {
   const roadGeometry = new THREE.PlaneGeometry(ROAD.WIDTH, ROAD.LENGTH);
   const roadMaterial = new THREE.MeshBasicMaterial({ color: ROAD.COLOR });
-
-  road = new THREE.Mesh(roadGeometry, roadMaterial);
+  const road = new THREE.Mesh(roadGeometry, roadMaterial);
   road.rotation.x = -Math.PI / 2;
-  road.position.y = 0;
-  road.position.z = ROAD.LENGTH / 2; // Position road ahead
+
+  // Adjust road position to start closer to the taxi
+  road.position.z = ROAD.LENGTH / 2 - 100;
 
   worldContainer.add(road);
+
+  addLaneMarkings(worldContainer);
+  createGrass(worldContainer);
+  createTrees(worldContainer);
+  createMountains(worldContainer);
+
+  return road;
 }
 
 function addLaneMarkings(worldContainer) {
@@ -191,8 +190,11 @@ function createMountains(worldContainer) {
   const mountainSpacing = ROAD.LENGTH / mountainCount;
 
   for (let i = 0; i < mountainCount; i++) {
-    const z = i * mountainSpacing + Math.random() * 100;
-    const x = (Math.random() - 0.5) * 300;
+    // Start mountains further along the road (add 500 to starting position)
+    const z = 500 + i * mountainSpacing + Math.random() * 100;
+
+    // Place mountains further from the road center
+    const x = (Math.random() - 0.5) * 400;
 
     const mountainGeometry = new THREE.ConeGeometry(50, 100, 4);
     const mountainMaterial = new THREE.MeshBasicMaterial({ color: 0x7a7a7a });
@@ -202,6 +204,59 @@ function createMountains(worldContainer) {
   }
 }
 
+function createFinishLine(worldContainer) {
+  // Calculate finish line position based on distance goal
+  const finishLinePosition = GAME.DISTANCE_GOAL;
+
+  // Create a checkered finish line
+  const finishLineWidth = ROAD.WIDTH + 4; // Wider than the road
+  const finishLineDepth = 5;
+
+  // COMPLETELY NEW APPROACH: Create the finish line as a group of individual tiles
+  const finishLine = new THREE.Group();
+  finishLine.position.y = 0.1; // Slightly above the road
+  finishLine.position.z = finishLinePosition;
+
+  // Mark the finish line as non-obstacle
+  finishLine.userData = {
+    isFinishLine: true,
+    isObstacle: false,
+  };
+
+  // Create a grid of black and white tiles
+  const tileWidth = 2;
+  const numTiles = Math.ceil(finishLineWidth / tileWidth);
+
+  for (let i = 0; i < numTiles; i++) {
+    const xPos = i * tileWidth - finishLineWidth / 2 + tileWidth / 2;
+
+    // Alternate black and white tiles
+    const tileColor = i % 2 === 0 ? 0xffffff : 0x000000;
+
+    // Create tile geometry
+    const tileGeometry = new THREE.PlaneGeometry(tileWidth, finishLineDepth);
+    const tileMaterial = new THREE.MeshBasicMaterial({
+      color: tileColor,
+      side: THREE.DoubleSide,
+    });
+
+    const tile = new THREE.Mesh(tileGeometry, tileMaterial);
+    tile.rotation.x = -Math.PI / 2;
+    tile.position.x = xPos;
+
+    finishLine.add(tile);
+  }
+
+  // Add finish line to the world
+  worldContainer.add(finishLine);
+
+  return finishLine;
+}
+
 export function getRoad() {
   return road;
+}
+
+export function getFinishLine() {
+  return finishLine;
 }

@@ -27,12 +27,13 @@ export const TRAFFIC = {
 
 export const GAME = {
   INITIAL_LEVEL: 1,
-  TIME_LIMIT: 60,
+  TIME_LIMIT: 30,
   INITIAL_SPEED: 10,
   MIN_SPEED: 10,
   MAX_SPEED: 100,
   JUMP_DURATION: 1,
   MAX_JUMP_HEIGHT: 2,
+  DISTANCE_GOAL: 1000, // Distance goal in meters
 };
 
 export const SKY = {

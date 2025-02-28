@@ -1,5 +1,5 @@
 // Main game file
-import { ROAD } from "./config/gameConfig.js";
+import { ROAD, GAME } from "./config/gameConfig.js";
 import {
   initScene,
   getScene,
@@ -7,11 +7,12 @@ import {
   getRenderer,
   getWorldContainer,
 } from "./utils/sceneSetup.js";
-import { createEnvironment } from "./components/environment.js";
+import { createEnvironment, getFinishLine } from "./components/environment.js";
 import {
   createTaxi,
   updateTaxi,
   updateCrashAnimation,
+  getTaxi,
 } from "./components/taxi.js";
 import { createTraffic, updateTrafficPositions } from "./components/traffic.js";
 import {
@@ -30,7 +31,9 @@ import {
   isCrashAnimationActive,
   setCrashAnimationActive,
   updateGameOverAnimationTime,
+  getGameOverAnimationTime,
   handleGameOver,
+  handleVictory,
 } from "./utils/gameState.js";
 import {
   checkCollisions,
@@ -92,6 +95,7 @@ function animate(time) {
     updateCrashAnimation(deltaTime);
   }
 
+  // If game is over (either crash or victory), just render and return
   if (gameState !== "playing") {
     renderer.render(getScene(), camera);
     return;
@@ -106,6 +110,17 @@ function animate(time) {
   // Move the world toward the player
   worldContainer.position.z -= getSpeed() * deltaTime;
 
+  // Check for collisions and finish line crossing
+  const { collision, collidedCar, finishLineCrossed } = checkCollisions();
+
+  // Handle finish line crossing
+  if (finishLineCrossed) {
+    console.log("Victory triggered! Finish line crossed!");
+    handleVictory();
+    renderer.render(getScene(), camera);
+    return;
+  }
+
   // Update game state (score, level, etc.)
   const worldZ = updateGameState(deltaTime, getJumpBonus());
 
@@ -117,9 +132,6 @@ function animate(time) {
     // Update traffic positions when world loops
     updateTrafficPositions();
   }
-
-  // Check for collisions
-  const { collision, collidedCar } = checkCollisions();
 
   if (collision) {
     // Collision detected!
