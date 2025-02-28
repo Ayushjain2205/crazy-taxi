@@ -526,11 +526,7 @@ function createFinishLine(worldContainer) {
   const finishLinePosition = currentDistanceGoal;
   console.log("Creating finish line at position:", finishLinePosition);
 
-  // Create a checkered finish line
-  const finishLineWidth = ROAD.WIDTH + 4; // Wider than the road
-  const finishLineDepth = 5;
-
-  // Create the finish line as a group of individual tiles
+  // Create a group for all finish line elements
   const finishLine = new THREE.Group();
   finishLine.position.y = 0.01; // Just above the road to prevent z-fighting
   finishLine.position.z = finishLinePosition;
@@ -541,29 +537,125 @@ function createFinishLine(worldContainer) {
     isObstacle: false,
   };
 
-  // Create a grid of black and white tiles
+  // Create a checkered finish line (ground)
+  const finishLineWidth = ROAD.WIDTH + 4; // Wider than the road
+  const finishLineDepth = 5;
   const tileWidth = 2;
   const numTiles = Math.ceil(finishLineWidth / tileWidth);
 
+  // Create ground tiles group
+  const groundTiles = new THREE.Group();
   for (let i = 0; i < numTiles; i++) {
     const xPos = i * tileWidth - finishLineWidth / 2 + tileWidth / 2;
-
-    // Alternate black and white tiles
     const tileColor = i % 2 === 0 ? 0xffffff : 0x000000;
-
-    // Create tile geometry
     const tileGeometry = new THREE.PlaneGeometry(tileWidth, finishLineDepth);
     const tileMaterial = new THREE.MeshBasicMaterial({
       color: tileColor,
       side: THREE.DoubleSide,
     });
-
     const tile = new THREE.Mesh(tileGeometry, tileMaterial);
     tile.rotation.x = -Math.PI / 2;
     tile.position.x = xPos;
-
-    finishLine.add(tile);
+    groundTiles.add(tile);
   }
+  finishLine.add(groundTiles);
+
+  // Create grand arch
+  const archHeight = 15;
+  const archWidth = ROAD.WIDTH + 8;
+  const archThickness = 1;
+
+  // Create arch pillars with blue and white stripes
+  const stripeHeight = 2; // Height of each stripe
+  const numStripes = Math.ceil(archHeight / stripeHeight);
+
+  // Create pillars with stripes
+  for (let i = 0; i < numStripes; i++) {
+    const stripeGeometry = new THREE.BoxGeometry(2, stripeHeight, 2);
+    const stripeMaterial = new THREE.MeshBasicMaterial({
+      color: i % 2 === 0 ? 0x0066cc : 0xffffff, // Alternate blue and white
+    });
+
+    // Left pillar stripe
+    const leftStripe = new THREE.Mesh(stripeGeometry, stripeMaterial);
+    leftStripe.position.set(
+      -archWidth / 2,
+      i * stripeHeight + stripeHeight / 2,
+      0
+    );
+    finishLine.add(leftStripe);
+
+    // Right pillar stripe
+    const rightStripe = new THREE.Mesh(stripeGeometry, stripeMaterial);
+    rightStripe.position.set(
+      archWidth / 2,
+      i * stripeHeight + stripeHeight / 2,
+      0
+    );
+    finishLine.add(rightStripe);
+  }
+
+  // Create arch top with stripes
+  const archSegments = 16; // Number of segments in the arch
+  const segmentAngle = Math.PI / archSegments;
+  const radius = archWidth / 2;
+
+  for (let i = 0; i < archSegments; i++) {
+    const startAngle = i * segmentAngle;
+    const endAngle = (i + 1) * segmentAngle;
+
+    const archSegmentGeometry = new THREE.CylinderGeometry(
+      archThickness,
+      archThickness,
+      archWidth / archSegments,
+      8,
+      1,
+      false,
+      startAngle,
+      segmentAngle
+    );
+
+    const archSegmentMaterial = new THREE.MeshBasicMaterial({
+      color: i % 2 === 0 ? 0x0066cc : 0xffffff, // Alternate blue and white
+    });
+
+    const archSegment = new THREE.Mesh(
+      archSegmentGeometry,
+      archSegmentMaterial
+    );
+    archSegment.position.y = archHeight;
+    archSegment.rotation.z = Math.PI / 2;
+    archSegment.position.x = radius * Math.cos(startAngle + segmentAngle / 2);
+    archSegment.position.y =
+      archHeight - radius * Math.sin(startAngle + segmentAngle / 2);
+    finishLine.add(archSegment);
+  }
+
+  // Add "CHECKPOINT" text
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 128;
+  const context = canvas.getContext("2d");
+
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = "#000000";
+  context.font = "bold 64px Arial";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText("CHECKPOINT", canvas.width / 2, canvas.height / 2);
+
+  const textTexture = new THREE.CanvasTexture(canvas);
+  const textGeometry = new THREE.PlaneGeometry(12, 3);
+  const textMaterial = new THREE.MeshBasicMaterial({
+    map: textTexture,
+    transparent: true,
+    side: THREE.DoubleSide,
+  });
+  const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+  textMesh.position.set(0, archHeight - 3, 0);
+  textMesh.rotation.y = Math.PI;
+  finishLine.add(textMesh);
 
   // Add finish line to the world
   worldContainer.add(finishLine);
