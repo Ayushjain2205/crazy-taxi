@@ -6,9 +6,17 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
+
+// Handle window resize
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
 
 // Add lights to the scene
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -86,6 +94,9 @@ const timerDiv = document.getElementById("timer");
 levelSpan.textContent = level;
 timeLimitSpan.textContent = timeLimit;
 timerDiv.textContent = "Time: " + remainingTime;
+
+// Make sure level info is initially hidden
+levelInfoDiv.style.display = "none";
 
 // Handle start button clicks
 startButton.addEventListener("click", () => {
