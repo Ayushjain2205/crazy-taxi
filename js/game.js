@@ -19,6 +19,9 @@ import {
   setupControls,
   isPlayerAccelerating,
   isPlayerDecelerating,
+  isPlayerMovingLeft,
+  isPlayerMovingRight,
+  isPlayerJumping,
 } from "./utils/controls.js";
 import {
   initGameState,
@@ -73,7 +76,7 @@ function initGame() {
   // Create traffic
   createTraffic();
 
-  // Setup controls
+  // Setup controls (this will also initialize touch controls)
   setupControls();
 
   // Initialize game state
@@ -161,12 +164,7 @@ function animate(time) {
 
   // Handle finish line crossing
   if (finishLineCrossed) {
-    console.log("=== FINISH LINE CROSSED IN GAME LOOP ===");
-    console.log("Game state before advancing:", gameState);
-    console.log("World position:", worldContainer.position.z);
-    console.log("Distance traveled:", Math.abs(worldContainer.position.z));
     advanceToNextLevel();
-    console.log("Game state after advancing:", getGameState());
   }
 
   // Update game state (score, level, etc.)
@@ -174,11 +172,8 @@ function animate(time) {
 
   // Check if we need to loop the world
   if (worldZ <= -ROAD.LENGTH) {
-    console.log("=== LOOPING WORLD ===");
-    console.log("Previous worldZ:", worldZ);
     setWorldZ(0);
     worldContainer.position.z = 0;
-    console.log("Reset worldZ to:", getWorldZ());
 
     // Update traffic positions when world loops
     updateTrafficPositions();

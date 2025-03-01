@@ -560,3 +560,376 @@ button:hover {
   color: #ffd700;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
+
+#mobile-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  z-index: 100;
+  pointer-events: none;
+  width: auto;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.control-group {
+  display: flex;
+  gap: 15px;
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.direction-pad {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.control-button {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  color: white;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+}
+
+.control-button:active,
+.control-button.pressed {
+  background: rgba(255, 204, 0, 0.3);
+  border-color: rgba(255, 204, 0, 0.5);
+  transform: scale(0.9);
+}
+
+#up-btn {
+  top: 0;
+  left: 40px;
+}
+
+#down-btn {
+  bottom: 0;
+  left: 40px;
+}
+
+#left-btn {
+  left: 0;
+  top: 40px;
+}
+
+#right-btn {
+  right: 0;
+  top: 40px;
+}
+
+#jump-btn {
+  position: absolute;
+  left: 40px;
+  top: 40px;
+  width: 40px;
+  height: 40px;
+  background: rgba(51, 153, 255, 0.3);
+  border-color: rgba(51, 153, 255, 0.5);
+  font-size: 16px;
+}
+
+/* Responsive HUD and Mobile Optimizations */
+@media (max-width: 768px), (hover: none) {
+  #hud {
+    padding: 5px;
+    flex-direction: row;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  #left-panel,
+  #right-panel {
+    gap: 3px;
+    flex: 1;
+  }
+
+  #score,
+  #timer,
+  #speed,
+  #distance-left,
+  #coins {
+    width: auto;
+    font-size: 12px;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.4);
+    margin: 1px 0;
+    border-radius: 4px;
+  }
+
+  .hud-label {
+    width: auto;
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .hud-value {
+    width: auto;
+    font-size: 12px;
+    min-width: 40px;
+  }
+
+  .powerup-status {
+    font-size: 11px;
+    padding: 3px 6px;
+    margin-top: 2px;
+  }
+
+  #mobile-controls {
+    opacity: 1;
+    visibility: visible;
+    bottom: 10px;
+    max-width: 260px;
+  }
+
+  #instructions {
+    padding: 10px;
+    justify-content: flex-start;
+    overflow-y: auto;
+    gap: 8px;
+  }
+
+  #instructions h1 {
+    font-size: 24px;
+    margin: 5px 0;
+  }
+
+  .instruction-section {
+    padding: 8px;
+    margin: 4px 0;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    max-width: none;
+  }
+
+  .instruction-section h2 {
+    font-size: 16px;
+    margin: 0 0 5px 0;
+  }
+
+  .key-controls p,
+  .powerup-info p {
+    font-size: 14px;
+    margin: 3px 0;
+  }
+
+  .key {
+    padding: 3px 6px;
+    font-size: 12px;
+    min-width: 14px;
+  }
+
+  .powerup-icon {
+    font-size: 16px;
+  }
+
+  #start-button {
+    margin: 10px 0;
+    padding: 8px 16px;
+    font-size: 16px;
+  }
+
+  .control-group {
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+  }
+
+  .direction-pad {
+    width: 130px;
+    height: 130px;
+  }
+
+  .control-button {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  #up-btn {
+    top: 0;
+    left: 44px;
+  }
+
+  #down-btn {
+    bottom: 0;
+    left: 44px;
+  }
+
+  #left-btn {
+    left: 0;
+    top: 44px;
+  }
+
+  #right-btn {
+    right: 0;
+    top: 44px;
+  }
+
+  #jump-btn {
+    left: 44px;
+    top: 44px;
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+    background: rgba(51, 153, 255, 0.3);
+    border-color: rgba(51, 153, 255, 0.5);
+  }
+}
+
+/* Extra optimization for very small screens */
+@media (max-width: 360px) {
+  #hud {
+    padding: 3px;
+  }
+
+  #score,
+  #timer,
+  #speed,
+  #distance-left,
+  #coins {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .hud-label {
+    font-size: 11px;
+  }
+
+  .hud-value {
+    font-size: 11px;
+  }
+
+  #mobile-controls {
+    max-width: 220px;
+    bottom: 5px;
+  }
+
+  .direction-pad {
+    width: 110px;
+    height: 110px;
+  }
+
+  .control-button {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  #up-btn {
+    left: 37px;
+  }
+  #down-btn {
+    left: 37px;
+  }
+  #left-btn {
+    top: 37px;
+  }
+  #right-btn {
+    top: 37px;
+  }
+  #jump-btn {
+    left: 37px;
+    top: 37px;
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Landscape mode optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  #hud {
+    padding: 3px;
+    flex-direction: row;
+  }
+
+  #left-panel {
+    flex: 2;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 3px;
+  }
+
+  #right-panel {
+    flex: 1;
+    align-items: flex-end;
+  }
+
+  #score,
+  #timer,
+  #speed,
+  #distance-left,
+  #coins {
+    width: auto;
+    min-width: 0;
+    flex: 0 1 auto;
+    font-size: 11px;
+    padding: 3px 6px;
+    margin: 0;
+  }
+
+  #mobile-controls {
+    bottom: 5px;
+    right: 5px;
+    left: auto;
+    transform: none;
+  }
+
+  .control-group {
+    padding: 5px;
+  }
+
+  .direction-pad {
+    width: 100px;
+    height: 100px;
+  }
+
+  .control-button {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  #up-btn {
+    left: 34px;
+  }
+  #down-btn {
+    left: 34px;
+  }
+  #left-btn {
+    top: 34px;
+  }
+  #right-btn {
+    top: 34px;
+  }
+  #jump-btn {
+    left: 34px;
+    top: 34px;
+    width: 32px;
+    height: 32px;
+  }
+}

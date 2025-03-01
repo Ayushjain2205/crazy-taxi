@@ -2,20 +2,21 @@
 import { setTaxiLane, getTaxiLane, startJump } from "../components/taxi.js";
 import { LANES } from "../config/gameConfig.js";
 import { restartGame } from "../utils/gameState.js";
+import { getTouchControls, initTouchControls } from "./touchControls.js";
 
 // Input state
-let isAccelerating = false;
-let isDecelerating = false;
-
-export function setupControls() {
-  window.addEventListener("keydown", handleKeyDown);
-  window.addEventListener("keyup", handleKeyUp);
-}
+const controls = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+  jump: false,
+};
 
 function handleKeyDown(e) {
   if (e.repeat) return;
 
-  // Get the current game state from the exported function
+  // Get the current game state
   const gameState = window._getGameState ? window._getGameState() : "playing";
 
   // Allow only restart key (R) when game is over
@@ -26,37 +27,96 @@ function handleKeyDown(e) {
     return;
   }
 
+  // Don't process movement keys if not playing
   if (gameState !== "playing") return;
 
-  const taxiLane = getTaxiLane();
-
-  if (e.key === "ArrowLeft" && taxiLane > 0) {
-    setTaxiLane(taxiLane - 1);
-  } else if (e.key === "ArrowRight" && taxiLane < LANES.COUNT - 1) {
-    setTaxiLane(taxiLane + 1);
-  } else if (e.key === "ArrowUp") {
-    isAccelerating = true;
-  } else if (e.key === "ArrowDown") {
-    isDecelerating = true;
-  } else if (e.key === " " || e.code === "Space") {
-    startJump();
+  switch (e.key) {
+    case "ArrowUp":
+      controls.up = true;
+      break;
+    case "ArrowDown":
+      controls.down = true;
+      break;
+    case "ArrowLeft":
+      if (getTaxiLane() > 0) {
+        setTaxiLane(getTaxiLane() - 1);
+      }
+      controls.left = true;
+      break;
+    case "ArrowRight":
+      if (getTaxiLane() < LANES.COUNT - 1) {
+        setTaxiLane(getTaxiLane() + 1);
+      }
+      controls.right = true;
+      break;
+    case " ": // Spacebar
+      controls.jump = true;
+      startJump();
+      e.preventDefault(); // Prevent page scrolling
+      break;
   }
 }
 
 function handleKeyUp(e) {
-  if (e.key === "ArrowUp") {
-    isAccelerating = false;
-  } else if (e.key === "ArrowDown") {
-    isDecelerating = false;
+  switch (e.key) {
+    case "ArrowUp":
+      controls.up = false;
+      break;
+    case "ArrowDown":
+      controls.down = false;
+      break;
+    case "ArrowLeft":
+      controls.left = false;
+      break;
+    case "ArrowRight":
+      controls.right = false;
+      break;
+    case " ": // Spacebar
+      controls.jump = false;
+      break;
   }
 }
 
+export function setupControls() {
+  // Initialize keyboard controls
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+
+  // Initialize touch controls
+  initTouchControls();
+}
+
 export function isPlayerAccelerating() {
-  return isAccelerating;
+  const touchControls = getTouchControls();
+  return controls.up || touchControls.up;
 }
 
 export function isPlayerDecelerating() {
-  return isDecelerating;
+  const touchControls = getTouchControls();
+  return controls.down || touchControls.down;
+}
+
+export function isPlayerMovingLeft() {
+  const touchControls = getTouchControls();
+  return controls.left || touchControls.left;
+}
+
+export function isPlayerMovingRight() {
+  const touchControls = getTouchControls();
+  return controls.right || touchControls.right;
+}
+
+export function isPlayerJumping() {
+  const touchControls = getTouchControls();
+  return controls.jump || touchControls.jump;
+}
+
+export function resetControls() {
+  controls.up = false;
+  controls.down = false;
+  controls.left = false;
+  controls.right = false;
+  controls.jump = false;
 }
 
 // Clean up event listeners when no longer needed

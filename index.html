@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Crazy Taxi</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -85,6 +85,19 @@
     </div>
 
     <div id="finish-banner">CONGRATULATIONS! You made it!</div>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls">
+        <div class="control-group">
+            <div class="direction-pad">
+                <button id="up-btn" class="control-button">⬆️</button>
+                <button id="down-btn" class="control-button">⬇️</button>
+                <button id="left-btn" class="control-button">⬅️</button>
+                <button id="right-btn" class="control-button">➡️</button>
+                <button id="jump-btn" class="control-button">↑</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Load Three.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
